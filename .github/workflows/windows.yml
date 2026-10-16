@@ -1,0 +1,113 @@
+name: Windows build and test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Automated tests (synthetic data only)
+        run: python -m pytest -q --junitxml=test-results.xml
+
+      - name: Build application folder (PyInstaller)
+        run: pyinstaller packaging/karnameh.spec --noconfirm --distpath dist --workpath build
+
+      - name: Self-test the packaged executable
+        run: |
+          $out = "$env:RUNNER_TEMP\selftest-portable"
+          $p = Start-Process -FilePath "dist\Karnameh\Karnameh.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
+          Get-Content "$out\selftest.txt"
+          if ($p.ExitCode -ne 0) { throw "packaged self-test failed ($($p.ExitCode))" }
+
+      - name: Packaged server starts, binds 127.0.0.1 only, handles a busy port
+        run: |
+          # Occupy the first preferred port to exercise the port-conflict path.
+          $blocker = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 8765)
+          $blocker.Start()
+          $proc = Start-Process -FilePath "dist\Karnameh\Karnameh.exe" -ArgumentList "--no-browser" -PassThru
+          try {
+            $port = $null
+            for ($i = 0; $i -lt 60 -and -not $port; $i++) {
+              Start-Sleep -Milliseconds 500
+              $f = "$env:LOCALAPPDATA\Karnameh\instance.json"
+              if (Test-Path $f) { $port = (Get-Content $f | ConvertFrom-Json).port }
+            }
+            if (-not $port) { throw "server did not start" }
+            if ($port -eq 8765) { throw "busy port was not skipped" }
+            $h = Invoke-RestMethod "http://127.0.0.1:$port/health"
+            if ($h.app -ne "karnameh") { throw "unexpected health response" }
+            $listen = Get-NetTCPConnection -State Listen -LocalPort $port
+            $listen | Format-Table LocalAddress, LocalPort, OwningProcess
+            if ($listen | Where-Object { $_.LocalAddress -ne "127.0.0.1" }) { throw "server listens on a non-loopback address" }
+            $page = Invoke-WebRequest "http://127.0.0.1:$port/" -UseBasicParsing
+            if ($page.Content -notmatch 'dir="rtl"') { throw "home page is not RTL" }
+          } finally {
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            $blocker.Stop()
+          }
+
+      - name: Build installer (Inno Setup)
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" packaging\installer.iss
+          Get-ChildItem dist\*.exe
+
+      - name: Install for the current user (no admin), then self-test the installed app
+        run: |
+          $setup = (Get-ChildItem dist\Karnameh-Setup-*.exe).FullName
+          $dir = "$env:LOCALAPPDATA\Programs\Karnameh"
+          $p = Start-Process -FilePath $setup -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER /NORESTART /TASKS=desktopicon /LOG=`"$env:RUNNER_TEMP\install.log`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "installer failed ($($p.ExitCode))" }
+          if (-not (Test-Path "$dir\Karnameh.exe")) { throw "Karnameh.exe not installed" }
+          $out = "$env:RUNNER_TEMP\selftest-installed"
+          $p = Start-Process -FilePath "$dir\Karnameh.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
+          Get-Content "$out\selftest.txt"
+          if ($p.ExitCode -ne 0) { throw "installed self-test failed" }
+          # Fonts must now be visible to Excel (registered for the current user).
+          $fonts = Get-ItemProperty "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -ErrorAction SilentlyContinue
+          $fonts | Format-List
+          foreach ($f in "B Nazanin", "B Mitra", "Vazirmatn FD") {
+            $line = Select-String -Path "$out\selftest.txt" -Pattern "font $f installed=True" -SimpleMatch
+            if (-not $line) { throw "font '$f' not detected as installed after setup" }
+          }
+          # Path with spaces and Persian characters.
+          $persian = "$env:RUNNER_TEMP\پوشه آزمایشی با فاصله"
+          New-Item -ItemType Directory -Path $persian | Out-Null
+          $p = Start-Process -FilePath "$dir\Karnameh.exe" -ArgumentList "--selftest `"$persian\خروجی`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "self-test in a Persian path failed" }
+
+      - name: Collect artifacts
+        if: always()
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          if (Test-Path dist\Karnameh) { Compress-Archive -Path dist\Karnameh -DestinationPath artifacts\Karnameh-portable.zip -Force }
+          Copy-Item dist\Karnameh-Setup-*.exe artifacts\ -ErrorAction SilentlyContinue
+          Copy-Item test-results.xml artifacts\ -ErrorAction SilentlyContinue
+          Copy-Item "$env:RUNNER_TEMP\selftest-installed" artifacts\sample-output-installed -Recurse -ErrorAction SilentlyContinue
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: karnameh-windows
+          path: artifacts/
