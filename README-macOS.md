@@ -20,35 +20,35 @@
 ## ۲. دریافت فایل نصب
 
 مسئول فنی فایل را از صفحهٔ GitHub پروژه برمی‌دارد: تب **Actions** ← آخرین اجرای موفق «macOS build and test» ← بخش **Artifacts**:
-- **karnameh-macos-arm64** برای مک‌های Apple Silicon
-- **karnameh-macos-x86_64** برای مک‌های اینتل
+- **personnel-evaluation-report-macos-arm64** برای مک‌های Apple Silicon
+- **personnel-evaluation-report-macos-x86_64** برای مک‌های اینتل
 
-پس از باز کردن فایل فشرده، فایل `Karnameh-0.1.0-macOS-….dmg` را دارید.
+پس از باز کردن فایل فشرده، فایل `PersonnelEvaluationReport-0.1.0-macOS-….dmg` را دارید.
 
 ## ۳. نصب
 
-1. روی فایل `.dmg` دوبار کلیک کنید. پنجره‌ای با **Karnameh**، میان‌بر **Applications**، راهنمای کاربر و همین راهنما باز می‌شود.
-2. **Karnameh** را روی **Applications** بکشید و رها کنید.
-3. دیسک «Karnameh» را از نوار کناری Finder بیرون بیاورید (Eject).
+1. روی فایل `.dmg` دوبار کلیک کنید. پنجره‌ای با **Personnel Evaluation Report**، میان‌بر **Applications**، راهنمای کاربر و همین راهنما باز می‌شود.
+2. **Personnel Evaluation Report** را روی **Applications** بکشید و رها کنید.
+3. دیسک «Personnel Evaluation Report» را از نوار کناری Finder بیرون بیاورید (Eject).
 
 ### اجرای اول: تأیید امنیتی مک
 برنامه امضای اپل (notarization) ندارد، به همین دلیل مک بار اول اجرای آن را متوقف می‌کند:
 
-1. در **Applications** روی **Karnameh** دوبار کلیک کنید. پیامی مانند «Apple could not verify "Karnameh"…» نمایش داده می‌شود. **Done** یا **OK** را بزنید (نه Move to Trash).
-2. منوی  ← **System Settings** ← **Privacy & Security** را باز کنید و پایین بروید تا پیام «Karnameh was blocked…» را ببینید.
+1. در **Applications** روی **Personnel Evaluation Report** دوبار کلیک کنید. پیامی مانند «Apple could not verify "Personnel Evaluation Report"…» نمایش داده می‌شود. **Done** یا **OK** را بزنید (نه Move to Trash).
+2. منوی  ← **System Settings** ← **Privacy & Security** را باز کنید و پایین بروید تا پیام «Personnel Evaluation Report was blocked…» را ببینید.
 3. **Open Anyway** را بزنید و با رمز مک تأیید کنید.
 4. از این به بعد برنامه بدون پرسش باز می‌شود.
 
-در macOS ۱۴ (Sonoma) و قدیمی‌تر، روش سریع‌تر هم کار می‌کند: روی Karnameh **راست‌کلیک ← Open ← Open**.
+در macOS ۱۴ (Sonoma) و قدیمی‌تر، روش سریع‌تر هم کار می‌کند: روی Personnel Evaluation Report **راست‌کلیک ← Open ← Open**.
 
 ### نصب فونت‌ها (یک بار)
 پس از اولین اجرا، در برنامه به **تنظیمات** بروید و **«نصب فونت‌های برنامه روی این رایانه»** را بزنید. فونت‌ها در `~/Library/Fonts` کاربر فعلی نصب می‌شوند تا اکسل مک آن‌ها را نمایش دهد. اگر اکسل باز است، آن را ببندید و دوباره باز کنید.
 
 ## ۴. اجرا و بستن
 
-- **Karnameh** را از Applications یا Launchpad باز کنید. پس از چند ثانیه برنامه در مرورگر پیش‌فرض باز می‌شود، با نشانی‌ای مانند `http://127.0.0.1:8765/`.
+- **Personnel Evaluation Report** را از Applications یا Launchpad باز کنید. پس از چند ثانیه برنامه در مرورگر پیش‌فرض باز می‌شود، با نشانی‌ای مانند `http://127.0.0.1:8765/`.
 - **برنامه آیکونی در Dock ندارد.** این عمدی است، چون کل برنامه در مرورگر است.
-- اگر زبانهٔ مرورگر را بستید، دوباره روی Karnameh کلیک کنید. همان برنامهٔ در حال اجرا دوباره باز می‌شود.
+- اگر زبانهٔ مرورگر را بستید، دوباره روی Personnel Evaluation Report کلیک کنید. همان برنامهٔ در حال اجرا دوباره باز می‌شود.
 - برای بستن کامل، در بالای صفحه روی **«خروج از برنامه»** بزنید. اطلاعات بارگذاری‌شده از حافظهٔ برنامه پاک می‌شود. خاموش یا Log out کردن مک هم برنامه را می‌بندد.
 
 ## ۵. استفادهٔ روزانه (خلاصه)
@@ -74,8 +74,8 @@
 
 ## ۷. حذف برنامه
 
-- **Karnameh** را از Applications به Trash بکشید.
-- تنظیمات و گزارش فنی برنامه در `~/Library/Application Support/Karnameh` است. در صورت تمایل آن را دستی حذف کنید؛ این پوشه اطلاعات کارکنان را ندارد. برای رفتن به آن، در Finder کلید **⌘⇧G** را بزنید و مسیر را وارد کنید.
+- **Personnel Evaluation Report** را از Applications به Trash بکشید.
+- تنظیمات و گزارش فنی برنامه در `~/Library/Application Support/PersonnelEvaluationReport` است. در صورت تمایل آن را دستی حذف کنید؛ این پوشه اطلاعات کارکنان را ندارد. برای رفتن به آن، در Finder کلید **⌘⇧G** را بزنید و مسیر را وارد کنید.
 - فونت‌های نصب‌شده در `~/Library/Fonts` باقی می‌مانند. در صورت نیاز آن‌ها را از Font Book حذف کنید.
 - فایل‌های دانلودشده و کارنامهٔ مشترک حذف نمی‌شوند.
 
@@ -83,13 +83,13 @@
 
 | مشکل | راه‌حل |
 |---|---|
-| «Karnameh is damaged and can't be opened» یا باز نمی‌شود | بخش «اجرای اول» را انجام دهید. اگر گزینهٔ Open Anyway دیده نشد، مسئول فنی می‌تواند در Terminal این دستور را اجرا کند: `xattr -dr com.apple.quarantine /Applications/Karnameh.app` |
+| «Personnel Evaluation Report is damaged and can't be opened» یا باز نمی‌شود | بخش «اجرای اول» را انجام دهید. اگر گزینهٔ Open Anyway دیده نشد، مسئول فنی می‌تواند در Terminal این دستور را اجرا کند: `xattr -dr com.apple.quarantine /Applications/Personnel Evaluation Report.app` |
 | «You can't open the application… because this application is not supported on this Mac» | نسخهٔ اشتباه دانلود شده است. برای Apple Silicon نسخهٔ `arm64` و برای اینتل نسخهٔ `x86_64` لازم است. |
 | مرورگر باز نمی‌شود | مرورگر را دستی باز کنید و `http://127.0.0.1:8765/` را وارد کنید. اگر آن درگاه اشغال باشد، یکی از ۸۷۶۶ تا ۸۷۷۴ را امتحان کنید. |
 | پنجرهٔ انتخاب فایل دیده نمی‌شود | Mission Control (F3) را باز کنید؛ پنجره احتمالاً پشت مرورگر است. |
 | مک برای دسترسی به Documents/Desktop/Downloads اجازه می‌خواهد | **Allow** را بزنید تا برنامه بتواند فایل پرسنلی را بخواند. |
 | «ذخیرهٔ کارنامهٔ مشترک ممکن نشد» | فایل در اکسل باز است؛ آن را ببندید و دوباره تلاش کنید. |
 | متن اکسل با فونت دیگری نمایش داده می‌شود | فونت‌ها را نصب کنید (بخش ۶) و اکسل را دوباره باز کنید. |
-| «خطای غیرمنتظره» | «خروج از برنامه» و اجرای دوباره. فایل `~/Library/Application Support/Karnameh/logs/karnameh.log` را برای پشتیبانی بفرستید. این فایل اطلاعات شخصی کارکنان را ندارد. |
+| «خطای غیرمنتظره» | «خروج از برنامه» و اجرای دوباره. فایل `~/Library/Application Support/PersonnelEvaluationReport/logs/personnel-evaluation-report.log` را برای پشتیبانی بفرستید. این فایل اطلاعات شخصی کارکنان را ندارد. |
 
 </div>

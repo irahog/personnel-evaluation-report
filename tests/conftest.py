@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from openpyxl import Workbook
 
-from karnameh.normalize import to_fa_digits as fa
+from personnel_evaluation_report.normalize import to_fa_digits as fa
 
 HEADERS = [
     "ردیف", "نام", "نام خانوادگی", "نوع استخدام", "وضعیت اشتغال", "شماره پرسنلی", "شماره ملی",
@@ -66,7 +66,7 @@ def make_wb(tmp_path):
 
 @pytest.fixture
 def settings(tmp_path):
-    from karnameh.settings import Settings
+    from personnel_evaluation_report.settings import Settings
     s = Settings.load(tmp_path / "settings.json")
     s.shared_workbook = str(tmp_path / "shared.xlsx")
     return s
@@ -95,7 +95,7 @@ class Client:
 
 @pytest.fixture
 def client(settings):
-    from karnameh.webapp import create_app
+    from personnel_evaluation_report.webapp import create_app
     answers: list = []
     app = create_app(settings, port=0, dialog=lambda mode, d: answers.pop(0) if answers else None)
     return Client(app, answers)

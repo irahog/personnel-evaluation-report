@@ -1,10 +1,10 @@
 """Program entry point (also the PyInstaller entry point).
 
-  karnameh                     start the local server and open the browser
-  karnameh --no-browser        start without opening a browser
-  karnameh --dialog MODE DIR OUT   (internal) show a native file dialog
-  karnameh --selftest OUTDIR   run an end-to-end check on the bundled synthetic workbook
-  karnameh --install-fonts     install the bundled fonts for the current user (no admin)
+  personnel_evaluation_report                     start the local server and open the browser
+  personnel_evaluation_report --no-browser        start without opening a browser
+  personnel_evaluation_report --dialog MODE DIR OUT   (internal) show a native file dialog
+  personnel_evaluation_report --selftest OUTDIR   run an end-to-end check on the bundled synthetic workbook
+  personnel_evaluation_report --install-fonts     install the bundled fonts for the current user (no admin)
 """
 from __future__ import annotations
 
@@ -23,13 +23,13 @@ from . import VERSION
 from .paths import user_data_dir
 
 PREFERRED_PORTS = range(8765, 8775)
-log = logging.getLogger("karnameh")
+log = logging.getLogger("personnel_evaluation_report")
 
 
 def setup_logging() -> None:
     logdir = user_data_dir() / "logs"
     logdir.mkdir(exist_ok=True)
-    h = logging.handlers.RotatingFileHandler(logdir / "karnameh.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+    h = logging.handlers.RotatingFileHandler(logdir / "personnel-evaluation-report.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
     h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     root = logging.getLogger()
     root.setLevel(logging.INFO)
@@ -47,7 +47,7 @@ def existing_instance() -> int | None:
     try:
         port = int(json.loads(_instance_file().read_text(encoding="utf-8"))["port"])
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2) as r:
-            if json.loads(r.read()).get("app") == "karnameh":
+            if json.loads(r.read()).get("app") == "personnel-evaluation-report":
                 return port
     except Exception:  # noqa: BLE001 – any failure means "no usable instance"
         return None
@@ -165,7 +165,7 @@ def selftest(outdir: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="karnameh")
+    p = argparse.ArgumentParser(prog="personnel_evaluation_report")
     p.add_argument("--dialog", nargs=3, metavar=("MODE", "DIR", "OUT"))
     p.add_argument("--selftest", metavar="OUTDIR")
     p.add_argument("--install-fonts", action="store_true", help="install bundled fonts for the current user")

@@ -1,26 +1,26 @@
 # PyInstaller spec — one-folder, windowed app.
-#   Windows: dist/Karnameh/Karnameh.exe
-#   macOS:   dist/Karnameh.app  (menu-bar-less background app; the UI is the browser)
-# Build:  pyinstaller packaging/karnameh.spec --noconfirm
+#   Windows: dist/PersonnelEvaluationReport/PersonnelEvaluationReport.exe
+#   macOS:   dist/Personnel Evaluation Report.app  (menu-bar-less background app; the UI is the browser)
+# Build:  pyinstaller packaging/personnel_evaluation_report.spec --noconfirm
 import sys
 from pathlib import Path
 
 ROOT = Path(SPECPATH).parent
 sys.path.insert(0, str(ROOT))
-from karnameh import VERSION  # noqa: E402
-PKG = ROOT / "karnameh"
+from personnel_evaluation_report import VERSION  # noqa: E402
+PKG = ROOT / "personnel_evaluation_report"
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
 datas = [
-    (str(PKG / "templates"), "karnameh/templates"),
-    (str(PKG / "static"), "karnameh/static"),
-    (str(PKG / "config"), "karnameh/config"),
-    (str(PKG / "resources"), "karnameh/resources"),
+    (str(PKG / "templates"), "personnel_evaluation_report/templates"),
+    (str(PKG / "static"), "personnel_evaluation_report/static"),
+    (str(PKG / "config"), "personnel_evaluation_report/config"),
+    (str(PKG / "resources"), "personnel_evaluation_report/resources"),
 ]
 
 a = Analysis(
-    [str(ROOT / "run_karnameh.py")],
+    [str(ROOT / "run_app.py")],
     pathex=[str(ROOT)],
     datas=datas,
     hiddenimports=["waitress", "tkinter", "tkinter.filedialog"],
@@ -31,21 +31,21 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [],
     exclude_binaries=True,
-    name="Karnameh",
+    name="PersonnelEvaluationReport",
     console=False,          # no terminal window for the user
     upx=False,
     version=str(ROOT / "packaging" / "version_info.txt") if IS_WIN else None,
 )
-coll = COLLECT(exe, a.binaries, a.datas, name="Karnameh", upx=False)
+coll = COLLECT(exe, a.binaries, a.datas, name="PersonnelEvaluationReport", upx=False)
 
 if IS_MAC:
     app = BUNDLE(
         coll,
-        name="Karnameh.app",
-        bundle_identifier="local.karnameh",
+        name="Personnel Evaluation Report.app",
+        bundle_identifier="local.personnel-evaluation-report",
         version=VERSION,
         info_plist={
-            "CFBundleDisplayName": "Karnameh",
+            "CFBundleDisplayName": "Personnel Evaluation Report",
             "CFBundleShortVersionString": VERSION,
             "CFBundleVersion": VERSION,
             # The UI is the browser: no Dock icon or menu bar, so macOS never reports the

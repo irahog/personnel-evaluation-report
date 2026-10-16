@@ -9,9 +9,9 @@ from . import APP_NAME
 
 
 def resource_dir() -> Path:
-    """Directory containing the `karnameh` package resources (templates, static, config)."""
+    """Directory containing the `personnel_evaluation_report` package resources (templates, static, config)."""
     if getattr(sys, "frozen", False):
-        return Path(getattr(sys, "_MEIPASS")) / "karnameh"
+        return Path(getattr(sys, "_MEIPASS")) / "personnel_evaluation_report"
     return Path(__file__).resolve().parent
 
 

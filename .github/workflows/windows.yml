@@ -31,12 +31,12 @@ jobs:
         run: python -m pytest -q --junitxml=test-results.xml
 
       - name: Build application folder (PyInstaller)
-        run: pyinstaller packaging/karnameh.spec --noconfirm --distpath dist --workpath build
+        run: pyinstaller packaging/personnel_evaluation_report.spec --noconfirm --distpath dist --workpath build
 
       - name: Self-test the packaged executable
         run: |
           $out = "$env:RUNNER_TEMP\selftest-portable"
-          $p = Start-Process -FilePath "dist\Karnameh\Karnameh.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
+          $p = Start-Process -FilePath "dist\PersonnelEvaluationReport\PersonnelEvaluationReport.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
           Get-Content "$out\selftest.txt"
           if ($p.ExitCode -ne 0) { throw "packaged self-test failed ($($p.ExitCode))" }
 
@@ -45,18 +45,18 @@ jobs:
           # Occupy the first preferred port to exercise the port-conflict path.
           $blocker = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 8765)
           $blocker.Start()
-          $proc = Start-Process -FilePath "dist\Karnameh\Karnameh.exe" -ArgumentList "--no-browser" -PassThru
+          $proc = Start-Process -FilePath "dist\PersonnelEvaluationReport\PersonnelEvaluationReport.exe" -ArgumentList "--no-browser" -PassThru
           try {
             $port = $null
             for ($i = 0; $i -lt 60 -and -not $port; $i++) {
               Start-Sleep -Milliseconds 500
-              $f = "$env:LOCALAPPDATA\Karnameh\instance.json"
+              $f = "$env:LOCALAPPDATA\PersonnelEvaluationReport\instance.json"
               if (Test-Path $f) { $port = (Get-Content $f | ConvertFrom-Json).port }
             }
             if (-not $port) { throw "server did not start" }
             if ($port -eq 8765) { throw "busy port was not skipped" }
             $h = Invoke-RestMethod "http://127.0.0.1:$port/health"
-            if ($h.app -ne "karnameh") { throw "unexpected health response" }
+            if ($h.app -ne "personnel-evaluation-report") { throw "unexpected health response" }
             $listen = Get-NetTCPConnection -State Listen -LocalPort $port
             $listen | Format-Table LocalAddress, LocalPort, OwningProcess
             if ($listen | Where-Object { $_.LocalAddress -ne "127.0.0.1" }) { throw "server listens on a non-loopback address" }
@@ -76,13 +76,13 @@ jobs:
 
       - name: Install for the current user (no admin), then self-test the installed app
         run: |
-          $setup = (Get-ChildItem dist\Karnameh-Setup-*.exe).FullName
-          $dir = "$env:LOCALAPPDATA\Programs\Karnameh"
+          $setup = (Get-ChildItem dist\PersonnelEvaluationReport-Setup-*.exe).FullName
+          $dir = "$env:LOCALAPPDATA\Programs\PersonnelEvaluationReport"
           $p = Start-Process -FilePath $setup -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER /NORESTART /TASKS=desktopicon /LOG=`"$env:RUNNER_TEMP\install.log`"" -Wait -PassThru
           if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "installer failed ($($p.ExitCode))" }
-          if (-not (Test-Path "$dir\Karnameh.exe")) { throw "Karnameh.exe not installed" }
+          if (-not (Test-Path "$dir\PersonnelEvaluationReport.exe")) { throw "PersonnelEvaluationReport.exe not installed" }
           $out = "$env:RUNNER_TEMP\selftest-installed"
-          $p = Start-Process -FilePath "$dir\Karnameh.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
+          $p = Start-Process -FilePath "$dir\PersonnelEvaluationReport.exe" -ArgumentList "--selftest `"$out`"" -Wait -PassThru
           Get-Content "$out\selftest.txt"
           if ($p.ExitCode -ne 0) { throw "installed self-test failed" }
           # Fonts must now be visible to Excel (registered for the current user).
@@ -95,20 +95,20 @@ jobs:
           # Path with spaces and Persian characters.
           $persian = "$env:RUNNER_TEMP\پوشه آزمایشی با فاصله"
           New-Item -ItemType Directory -Path $persian | Out-Null
-          $p = Start-Process -FilePath "$dir\Karnameh.exe" -ArgumentList "--selftest `"$persian\خروجی`"" -Wait -PassThru
+          $p = Start-Process -FilePath "$dir\PersonnelEvaluationReport.exe" -ArgumentList "--selftest `"$persian\خروجی`"" -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "self-test in a Persian path failed" }
 
       - name: Collect artifacts
         if: always()
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
-          if (Test-Path dist\Karnameh) { Compress-Archive -Path dist\Karnameh -DestinationPath artifacts\Karnameh-portable.zip -Force }
-          Copy-Item dist\Karnameh-Setup-*.exe artifacts\ -ErrorAction SilentlyContinue
+          if (Test-Path dist\PersonnelEvaluationReport) { Compress-Archive -Path dist\PersonnelEvaluationReport -DestinationPath artifacts\PersonnelEvaluationReport-portable.zip -Force }
+          Copy-Item dist\PersonnelEvaluationReport-Setup-*.exe artifacts\ -ErrorAction SilentlyContinue
           Copy-Item test-results.xml artifacts\ -ErrorAction SilentlyContinue
           Copy-Item "$env:RUNNER_TEMP\selftest-installed" artifacts\sample-output-installed -Recurse -ErrorAction SilentlyContinue
 
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: karnameh-windows
+          name: personnel-evaluation-report-windows
           path: artifacts/

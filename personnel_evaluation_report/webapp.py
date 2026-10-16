@@ -21,7 +21,7 @@ from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, Re
 from .settings import Settings
 from .source import LoadedWorkbook, NeedsSheetChoice, SourceError, load_source
 
-log = logging.getLogger("karnameh")
+log = logging.getLogger("personnel_evaluation_report")
 
 
 @dataclass
@@ -52,7 +52,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
     app.jinja_env.filters["fa_time"] = lambda t: f"{jalali.from_gregorian(t.date()).format()} ساعت {to_fa_digits(t.strftime('%H:%M'))}"
     state = AppState(settings or Settings.load())
     ask = dialog or filedialog.ask
-    app.extensions["karnameh"] = state
+    app.extensions["personnel_evaluation_report"] = state
 
     # ── helpers ──────────────────────────────────────────────────────────
     def sess() -> SessionState:
@@ -185,7 +185,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
 
     @app.get("/health")
     def health():
-        return {"app": "karnameh", "version": VERSION}
+        return {"app": "personnel-evaluation-report", "version": VERSION}
 
     @app.post("/source/pick")
     def pick_source():
@@ -396,5 +396,5 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
 def _download(body: bytes, filename: str, mimetype: str) -> Response:
     safe = filename.translate(str.maketrans({c: " " for c in '\\/:*?"<>|'}))
     resp = Response(body, mimetype=mimetype)
-    resp.headers["Content-Disposition"] = f"attachment; filename=\"karnameh{Path(safe).suffix}\"; filename*=UTF-8''{quote(safe)}"
+    resp.headers["Content-Disposition"] = f"attachment; filename=\"report{Path(safe).suffix}\"; filename*=UTF-8''{quote(safe)}"
     return resp

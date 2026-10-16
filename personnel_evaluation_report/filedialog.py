@@ -19,16 +19,16 @@ MODES = ("open_source", "open_shared", "new_shared")
 def _command() -> list[str]:
     if getattr(sys, "frozen", False):
         return [sys.executable]
-    return [sys.executable, "-m", "karnameh"]
+    return [sys.executable, "-m", "personnel_evaluation_report"]
 
 
 def ask(mode: str, initial_dir: str = "") -> str | None:
     """Show the dialog and return the selected path, or None if cancelled."""
     assert mode in MODES
-    stub = os.environ.get("KARNAMEH_DEV_DIALOG_" + mode.upper())   # development/UI testing only
+    stub = os.environ.get("PER_REPORT_DEV_DIALOG_" + mode.upper())   # development/UI testing only
     if stub is not None:
         return stub or None
-    fd, out = tempfile.mkstemp(prefix="karnameh-dialog-", suffix=".json")
+    fd, out = tempfile.mkstemp(prefix="per-report-dialog-", suffix=".json")
     os.close(fd)
     try:
         subprocess.run([*_command(), "--dialog", mode, initial_dir or "", out], check=False, timeout=3600)

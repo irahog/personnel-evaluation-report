@@ -8,10 +8,10 @@ import zipfile
 import pytest
 from openpyxl import load_workbook
 
-from karnameh import export_excel, export_md, fonts
-from karnameh.paths import TEMPLATE_MAP
-from karnameh.report import FIELDS, SECTIONS, TableSection, all_cells, apply_form, new_report
-from karnameh.source import load_source
+from personnel_evaluation_report import export_excel, export_md, fonts
+from personnel_evaluation_report.paths import TEMPLATE_MAP
+from personnel_evaluation_report.report import FIELDS, SECTIONS, TableSection, all_cells, apply_form, new_report
+from personnel_evaluation_report.source import load_source
 from tests.conftest import person
 
 MANUAL = {
@@ -126,11 +126,11 @@ def test_outputs_contain_same_values(report, client, make_wb):
     ws = load_workbook(io.BytesIO(data)).active
     cells = json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))["fields"]
     md = export_md.render(report)
-    from karnameh.webapp import create_app
+    from personnel_evaluation_report.webapp import create_app
     app = create_app()
     with app.test_request_context("/"):
         from flask import g, render_template
-        from karnameh.webapp import SessionState
+        from personnel_evaluation_report.webapp import SessionState
         g.s = SessionState(report=report)
         html = render_template("view.html", r=report)
     for fid, f in FIELDS.items():
@@ -170,7 +170,7 @@ def test_shared_workbook_append_replace_and_new_name(report, make_wb, tmp_path):
     res = export_excel.append_to_shared(str(shared), other, "B Nazanin")
     assert res.sheet == "نام1 خانوادگی1 (2)"
     assert load_workbook(shared).sheetnames == ["نام1 خانوادگی1", "نام1 خانوادگی1 (2)"]
-    assert not list(tmp_path.glob("~karnameh-*")), "temporary files are cleaned up"
+    assert not list(tmp_path.glob("~per-report-*")), "temporary files are cleaned up"
 
 
 def test_shared_workbook_with_drawings_is_refused(report, tmp_path):

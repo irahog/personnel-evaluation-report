@@ -219,7 +219,7 @@ def append_to_shared(path: str, report: Report, font_name: str, *, replace: bool
 def _atomic_save(wb, p: Path) -> None:
     """Write next to the target, then replace — the shared file is never left half-written."""
     try:
-        fd, tmp = tempfile.mkstemp(prefix="~karnameh-", suffix=".xlsx", dir=p.parent)
+        fd, tmp = tempfile.mkstemp(prefix="~per-report-", suffix=".xlsx", dir=p.parent)
     except OSError:
         raise ExportError("در پوشهٔ کارنامهٔ مشترک امکان نوشتن وجود ندارد.")
     os.close(fd)

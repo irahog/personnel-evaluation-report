@@ -1,28 +1,28 @@
 ﻿; Inno Setup 6 script — per-user install (no administrator rights), Persian UI fonts installed for the current user.
-; Build: iscc packaging\installer.iss   (after PyInstaller has produced dist\Karnameh)
+; Build: iscc packaging\installer.iss   (after PyInstaller has produced dist\PersonnelEvaluationReport)
 
 #define AppName "کارنامه پرسنلی"
 #define AppVersion "0.1.0"
-#define SrcDir "..\dist\Karnameh"
-#define FontDir "..\dist\Karnameh\_internal\karnameh\static\fonts"
+#define SrcDir "..\dist\PersonnelEvaluationReport"
+#define FontDir "..\dist\PersonnelEvaluationReport\_internal\personnel_evaluation_report\static\fonts"
 
 [Setup]
 AppId={{6F2B3D0E-8E7A-4C55-9C0B-6A0D5B1F2E41}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Karnameh
-DefaultDirName={localappdata}\Programs\Karnameh
+AppPublisher=Personnel Evaluation Report
+DefaultDirName={localappdata}\Programs\PersonnelEvaluationReport
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\dist
-OutputBaseFilename=Karnameh-Setup-{#AppVersion}
+OutputBaseFilename=PersonnelEvaluationReport-Setup-{#AppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayName={#AppName}
-UninstallDisplayIcon={app}\Karnameh.exe
+UninstallDisplayIcon={app}\PersonnelEvaluationReport.exe
 ; 64-bit Intel/AMD Windows, or Windows 11 on ARM (x64 emulation). Refuses 32-bit and Windows 10 on ARM.
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -47,9 +47,9 @@ Source: "{#FontDir}\Vazirmatn-FD-Bold.ttf"; DestDir: "{autofonts}"; FontInstall:
 Source: "..\docs\fa\راهنمای کاربر.html"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\Karnameh.exe"
+Name: "{autoprograms}\{#AppName}"; Filename: "{app}\PersonnelEvaluationReport.exe"
 Name: "{autoprograms}\راهنمای کارنامه پرسنلی"; Filename: "{app}\راهنمای کاربر.html"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\Karnameh.exe"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\PersonnelEvaluationReport.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Karnameh.exe"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\PersonnelEvaluationReport.exe"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent

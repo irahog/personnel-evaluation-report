@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>راهنمای کاربر — کارنامه پرسنلی</title>
 <style>
-  @font-face { font-family: "B Nazanin"; src: local("B Nazanin"), url("_internal/karnameh/static/fonts/BNazanin.ttf"); }
-  @font-face { font-family: "B Nazanin"; font-weight: 700; src: local("B Nazanin Bold"), url("_internal/karnameh/static/fonts/BNaznnBd.ttf"); }
+  @font-face { font-family: "B Nazanin"; src: local("B Nazanin"), url("_internal/personnel_evaluation_report/static/fonts/BNazanin.ttf"); }
+  @font-face { font-family: "B Nazanin"; font-weight: 700; src: local("B Nazanin Bold"), url("_internal/personnel_evaluation_report/static/fonts/BNaznnBd.ttf"); }
   :root { --ink: #1d1d28; --head: #c9c9dd; --bg: #f4f4f8; --line: #8a8aa3; --warn: #fff6e0; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: "B Nazanin", "Times New Roman", serif;
     font-size: 18px; line-height: 1.9; }
@@ -28,7 +28,7 @@
 <body>
 <main>
 <h1>راهنمای کاربر برنامهٔ «کارنامه پرسنلی»</h1>
-<p class="note">این راهنما برای ویندوز و مک یکسان است. نکته‌های نصب، اجرای اول، فونت‌ها و رفع اشکال مخصوص هر سیستم‌عامل در فایل‌های «README-Windows.md» و «README-macOS.md» آمده است. در مک: میان‌برها با کلید ⌘ (به جای Ctrl) هستند، برنامه آیکونی در Dock ندارد، و تنظیمات در <code>~/Library/Application Support/Karnameh</code> ذخیره می‌شود.</p>
+<p class="note">این راهنما برای ویندوز و مک یکسان است. نکته‌های نصب، اجرای اول، فونت‌ها و رفع اشکال مخصوص هر سیستم‌عامل در فایل‌های «README-Windows.md» و «README-macOS.md» آمده است. در مک: میان‌برها با کلید ⌘ (به جای Ctrl) هستند، برنامه آیکونی در Dock ندارد، و تنظیمات در <code>~/Library/Application Support/PersonnelEvaluationReport</code> ذخیره می‌شود.</p>
 
 <nav><ol>
   <li><a href="#about">این برنامه چه می‌کند؟</a></li>
@@ -55,12 +55,12 @@
 
 <h2 id="install">۲. نصب</h2>
 <ol>
-  <li>فایل <code>Karnameh-Setup-0.1.0.exe</code> را اجرا کنید. به دسترسی مدیر سیستم (Administrator) نیاز نیست.</li>
+  <li>فایل <code>PersonnelEvaluationReport-Setup-0.1.0.exe</code> را اجرا کنید. به دسترسی مدیر سیستم (Administrator) نیاز نیست.</li>
   <li>مراحل نصب را دنبال کنید. گزینهٔ «ایجاد میان‌بر روی میز کار» را فعال بگذارید.</li>
   <li>نصب‌کننده، فونت‌های «بی نازنین»، «بی میترا» و «وزیرمتن» را برای کاربر فعلی ویندوز نصب می‌کند تا فایل‌های اکسل درست نمایش داده شوند.</li>
 </ol>
 <p class="note">اگر ویندوز پیام «Windows protected your PC» نشان داد، روی «More info» و سپس «Run anyway» کلیک کنید (این پیام برای برنامه‌هایی است که امضای دیجیتال تجاری ندارند). اگر اجازهٔ این کار را ندارید، با واحد فناوری اطلاعات هماهنگ کنید.</p>
-<p><strong>نسخهٔ قابل‌حمل (بدون نصب):</strong> فایل <code>Karnameh-portable.zip</code> را در یک پوشه باز کنید و <code>Karnameh.exe</code> را اجرا کنید. در این حالت فونت‌ها خودکار نصب نمی‌شوند (بخش <a href="#fonts">فونت‌ها</a> را ببینید).</p>
+<p><strong>نسخهٔ قابل‌حمل (بدون نصب):</strong> فایل <code>PersonnelEvaluationReport-portable.zip</code> را در یک پوشه باز کنید و <code>PersonnelEvaluationReport.exe</code> را اجرا کنید. در این حالت فونت‌ها خودکار نصب نمی‌شوند (بخش <a href="#fonts">فونت‌ها</a> را ببینید).</p>
 
 <h2 id="start">۳. اجرا و بستن برنامه</h2>
 <ul>
@@ -144,7 +144,7 @@
   <tr><td>فایل‌های موقت</td><td>هنگام ذخیرهٔ کارنامهٔ مشترک، یک فایل موقت کنار آن ساخته و بلافاصله جایگزین یا حذف می‌شود. دانلودها مستقیم از حافظه ارسال می‌شوند.</td><td>چند ثانیه</td></tr>
   <tr><td>مرورگر</td><td>برنامه از مرورگر می‌خواهد صفحه‌ها را ذخیره (کش) نکند. ولی تاریخچهٔ نشانی‌ها و فایل‌های دانلودشده در مرورگر می‌ماند.</td><td>طبق تنظیمات مرورگر</td></tr>
   <tr><td>فایل‌های دانلودشده و کارنامهٔ مشترک</td><td>گزارش کامل کارمند</td><td>تا وقتی خودتان آن‌ها را حذف کنید. مسئولیت نگهداری امن آن‌ها با کاربر است.</td></tr>
-  <tr><td>پوشهٔ تنظیمات برنامه<br><code>%LOCALAPPDATA%\Karnameh</code></td><td>فونت انتخابی، مسیر کارنامهٔ مشترک، آخرین پوشهٔ استفاده‌شده، و گزارش رویدادهای فنی (بدون کد ملی، تلفن، تاریخ تولد یا نام کارکنان)</td><td>تا حذف دستی</td></tr>
+  <tr><td>پوشهٔ تنظیمات برنامه<br><code>%LOCALAPPDATA%\PersonnelEvaluationReport</code></td><td>فونت انتخابی، مسیر کارنامهٔ مشترک، آخرین پوشهٔ استفاده‌شده، و گزارش رویدادهای فنی (بدون کد ملی، تلفن، تاریخ تولد یا نام کارکنان)</td><td>تا حذف دستی</td></tr>
 </table>
 <p class="note">بسته شدن برنامه اطلاعات را از حافظهٔ برنامه پاک می‌کند، اما این به معنای پاک شدن کامل اطلاعات از رایانه نیست: فایل پرسنلی، فایل‌های دانلودشده، کارنامهٔ مشترک و ممکن است بخش‌هایی از حافظهٔ موقت سیستم‌عامل همچنان روی رایانه باشد.</p>
 <p>برنامه فقط از همین رایانه قابل دسترسی است (نشانی ‎127.0.0.1‎) و از شبکه یا اینترنت در دسترس نیست. هیچ اطلاعاتی به اینترنت یا سرویس دیگری فرستاده نمی‌شود.</p>
@@ -162,7 +162,7 @@
   <tr><td>«ذخیرهٔ کارنامهٔ مشترک ممکن نشد»</td><td>کارنامهٔ مشترک را در اکسل ببندید و دوباره «افزودن به کارنامهٔ مشترک» را بزنید.</td></tr>
   <tr><td>متن فایل اکسل با فونت دیگری نمایش داده می‌شود</td><td>فونت روی آن رایانه نصب نیست؛ بخش <a href="#fonts">فونت‌ها</a> را ببینید.</td></tr>
   <tr><td>رنگ سرستون‌ها چاپ نمی‌شود</td><td>در پنجرهٔ چاپ مرورگر، «More settings» و سپس «Background graphics» را فعال کنید.</td></tr>
-  <tr><td>«خطای غیرمنتظره»</td><td>برنامه را با «خروج از برنامه» ببندید و دوباره اجرا کنید. اگر تکرار شد، فایل گزارش فنی <code>%LOCALAPPDATA%\Karnameh\logs\karnameh.log</code> را برای پشتیبانی بفرستید (این فایل اطلاعات شخصی کارکنان را ندارد).</td></tr>
+  <tr><td>«خطای غیرمنتظره»</td><td>برنامه را با «خروج از برنامه» ببندید و دوباره اجرا کنید. اگر تکرار شد، فایل گزارش فنی <code>%LOCALAPPDATA%\PersonnelEvaluationReport\logs\personnel-evaluation-report.log</code> را برای پشتیبانی بفرستید (این فایل اطلاعات شخصی کارکنان را ندارد).</td></tr>
 </table>
 
 <h2 id="limits">۱۰. محدودیت‌های شناخته‌شده</h2>

@@ -86,7 +86,7 @@ def test_new_employee_does_not_inherit_previous_values(client, make_wb):
 
 
 def test_sessions_are_isolated(settings, make_wb):
-    from karnameh.webapp import create_app
+    from personnel_evaluation_report.webapp import create_app
     from tests.conftest import Client
     answers: list = []
     app = create_app(settings, dialog=lambda m, d: answers.pop(0))
@@ -103,7 +103,7 @@ def test_csrf_required(client, make_wb):
 
 
 def test_host_header_check(settings):
-    from karnameh.webapp import create_app
+    from personnel_evaluation_report.webapp import create_app
     app = create_app(settings, port=8765)
     c = app.test_client()
     assert c.get("/", headers={"Host": "127.0.0.1:8765"}).status_code == 200
@@ -173,7 +173,7 @@ def test_shared_replace_needs_confirmation(client, make_wb, settings):
 
 
 def test_export_failure_shows_no_success(client, make_wb, settings, monkeypatch):
-    from karnameh import export_excel
+    from personnel_evaluation_report import export_excel
     client.load(make_wb())
     _search(client, "0000000001")
     client.post("/report/edit", {})
@@ -194,7 +194,7 @@ def test_settings_font_selection(client):
 
 
 def test_unexpected_error_is_generic_and_logged_without_values(client, make_wb, monkeypatch, caplog):
-    from karnameh import export_md
+    from personnel_evaluation_report import export_md
     client.load(make_wb())
     _search(client, "0000000001")
     client.post("/report/edit", {})
@@ -202,7 +202,7 @@ def test_unexpected_error_is_generic_and_logged_without_values(client, make_wb, 
     def boom(r):
         raise ValueError("0000000001 sensitive")
     monkeypatch.setattr(export_md, "render", boom)
-    with caplog.at_level(logging.INFO, logger="karnameh"):
+    with caplog.at_level(logging.INFO, logger="personnel_evaluation_report"):
         r = client.get("/report/download.md")
     assert r.status_code == 500 and "0000000001" not in r.get_data(as_text=True)
     assert "Traceback" not in r.get_data(as_text=True)
@@ -223,12 +223,12 @@ def test_logs_never_contain_personal_data(client, make_wb, caplog):
 
 
 def test_print_css_present():
-    css = (ROOT / "karnameh/static/app.css").read_text(encoding="utf-8")
+    css = (ROOT / "personnel_evaluation_report/static/app.css").read_text(encoding="utf-8")
     assert "@media print" in css and "@page" in css and ".no-print" in css
 
 
 def test_quit_clears_sessions(settings, make_wb):
-    from karnameh.webapp import create_app
+    from personnel_evaluation_report.webapp import create_app
     from tests.conftest import Client
     called = []
     answers: list = []
@@ -236,13 +236,13 @@ def test_quit_clears_sessions(settings, make_wb):
     c = Client(app, answers)
     c.load(make_wb())
     assert "برنامه بسته شد" in c.post("/quit").get_data(as_text=True)
-    assert app.extensions["karnameh"].sessions == {}
+    assert app.extensions["personnel_evaluation_report"].sessions == {}
     time.sleep(0.8)
     assert called
 
 
 def test_free_port_handles_conflict():
-    from karnameh.__main__ import PREFERRED_PORTS, free_port
+    from personnel_evaluation_report.__main__ import PREFERRED_PORTS, free_port
     held = []
     try:
         for p in PREFERRED_PORTS:
@@ -274,13 +274,13 @@ def test_application_startup_binds_loopback_only(tmp_path):
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         port = s.getsockname()[1]
-    proc = subprocess.Popen([sys.executable, "-m", "karnameh", "--no-browser", "--port", str(port)],
+    proc = subprocess.Popen([sys.executable, "-m", "personnel_evaluation_report", "--no-browser", "--port", str(port)],
                             cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         for _ in range(50):
             try:
                 with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1) as r:
-                    assert json.loads(r.read())["app"] == "karnameh"
+                    assert json.loads(r.read())["app"] == "personnel-evaluation-report"
                     break
             except OSError:
                 time.sleep(0.2)
@@ -292,7 +292,7 @@ def test_application_startup_binds_loopback_only(tmp_path):
             with pytest.raises(OSError):
                 opener.open(f"http://{ip}:{port}/health", timeout=2)
         # Second launch detects the running instance instead of starting another server.
-        r = subprocess.run([sys.executable, "-m", "karnameh", "--no-browser"], cwd=ROOT, env=env, timeout=30)
+        r = subprocess.run([sys.executable, "-m", "personnel_evaluation_report", "--no-browser"], cwd=ROOT, env=env, timeout=30)
         assert r.returncode == 0
     finally:
         proc.terminate()
@@ -301,14 +301,14 @@ def test_application_startup_binds_loopback_only(tmp_path):
 
 def test_selftest_command(tmp_path):
     env = {**os.environ, "HOME": str(tmp_path), "LOCALAPPDATA": str(tmp_path), "XDG_DATA_HOME": str(tmp_path)}
-    r = subprocess.run([sys.executable, "-m", "karnameh", "--selftest", str(tmp_path / "out")], cwd=ROOT, env=env,
+    r = subprocess.run([sys.executable, "-m", "personnel_evaluation_report", "--selftest", str(tmp_path / "out")], cwd=ROOT, env=env,
                        capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stdout + r.stderr
     assert (tmp_path / "out" / "report.xlsx").exists()
 
 
 def test_server_is_created_on_loopback(monkeypatch, tmp_path):
-    import karnameh.__main__ as m
+    import personnel_evaluation_report.__main__ as m
     import waitress
     seen = {}
 
@@ -329,6 +329,6 @@ def test_server_is_created_on_loopback(monkeypatch, tmp_path):
 def test_no_external_resources_offline():
     """Pages must work offline: no CDN, web font, analytics or other external URL."""
     import re
-    for p in list((ROOT / "karnameh/templates").glob("*.html")) + list((ROOT / "karnameh/static").glob("*.*")):
+    for p in list((ROOT / "personnel_evaluation_report/templates").glob("*.html")) + list((ROOT / "personnel_evaluation_report/static").glob("*.*")):
         text = p.read_text(encoding="utf-8")
         assert not re.search(r"(https?:)?//[a-z0-9.-]+\.[a-z]{2,}", text, re.I), p.name

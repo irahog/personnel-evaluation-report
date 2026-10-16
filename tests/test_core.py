@@ -6,9 +6,9 @@ import datetime as dt
 import pytest
 from openpyxl import load_workbook
 
-from karnameh import jalali
-from karnameh.normalize import header_key, normalize_national_id, to_ascii_digits, to_fa_digits
-from karnameh.source import NeedsSheetChoice, SourceError, load_mapping, load_source
+from personnel_evaluation_report import jalali
+from personnel_evaluation_report.normalize import header_key, normalize_national_id, to_ascii_digits, to_fa_digits
+from personnel_evaluation_report.source import NeedsSheetChoice, SourceError, load_mapping, load_source
 from tests.conftest import HEADERS, person, write_workbook
 
 
@@ -228,7 +228,7 @@ def test_staleness_detection(make_wb):
 
 
 def test_bundled_fake_workbook_loads():
-    from karnameh.paths import SAMPLE_WORKBOOK
+    from personnel_evaluation_report.paths import SAMPLE_WORKBOOK
     wb = load_source(str(SAMPLE_WORKBOOK))
     assert len(wb.employees) == 5 and wb.header_row == 1
     assert wb.find("۰۱۵۰۰۹۹۰۰۰")[0].values["national_id"].startswith("۰")

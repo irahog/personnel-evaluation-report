@@ -20,6 +20,9 @@ jobs:
             arch: x86_64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
+    env:
+      APP: dist/Personnel Evaluation Report.app
+      BIN: dist/Personnel Evaluation Report.app/Contents/MacOS/PersonnelEvaluationReport
     steps:
       - uses: actions/checkout@v7
 
@@ -36,34 +39,34 @@ jobs:
       - name: Automated tests (synthetic data only)
         run: python -m pytest -q --junitxml=test-results.xml
 
-      - name: Build Karnameh.app (PyInstaller)
+      - name: Build Personnel Evaluation Report.app (PyInstaller)
         run: |
-          pyinstaller packaging/karnameh.spec --noconfirm --distpath dist --workpath build
-          file dist/Karnameh.app/Contents/MacOS/Karnameh
-          file dist/Karnameh.app/Contents/MacOS/Karnameh | grep -q "${{ matrix.arch }}"
+          pyinstaller packaging/personnel_evaluation_report.spec --noconfirm --distpath dist --workpath build
+          file "$BIN"
+          file "$BIN" | grep -q "${{ matrix.arch }}"
 
       - name: Self-test the packaged app (path with spaces and Persian characters)
         run: |
           out="$RUNNER_TEMP/پوشه آزمایشی/خروجی"
-          dist/Karnameh.app/Contents/MacOS/Karnameh --selftest "$out"
+          "$BIN" --selftest "$out"
           cat "$out/selftest.txt"
 
       - name: Per-user font installation is detected
         run: |
-          dist/Karnameh.app/Contents/MacOS/Karnameh --install-fonts
+          "$BIN" --install-fonts
           ls ~/Library/Fonts
           out="$RUNNER_TEMP/fonts-check"
-          dist/Karnameh.app/Contents/MacOS/Karnameh --selftest "$out"
+          "$BIN" --selftest "$out"
           for f in "B Nazanin" "B Mitra" "Vazirmatn FD"; do
             grep -q "font $f installed=True" "$out/selftest.txt" || { echo "font $f not detected"; exit 1; }
           done
 
       - name: Packaged server starts and listens on 127.0.0.1 only
         run: |
-          dist/Karnameh.app/Contents/MacOS/Karnameh --no-browser --port 8799 &
+          "$BIN" --no-browser --port 8799 &
           pid=$!
           for i in $(seq 1 40); do curl -sf http://127.0.0.1:8799/health && break; sleep 0.5; done
-          curl -sf http://127.0.0.1:8799/health | grep -q karnameh
+          curl -sf http://127.0.0.1:8799/health | grep -q personnel-evaluation-report
           curl -sf http://127.0.0.1:8799/ | grep -q 'dir="rtl"'
           lsof -nP -iTCP:8799 -sTCP:LISTEN
           if lsof -nP -iTCP:8799 -sTCP:LISTEN | tail -n +2 | grep -v "127.0.0.1:8799"; then
@@ -75,14 +78,14 @@ jobs:
         run: |
           stage="$RUNNER_TEMP/dmg"
           mkdir -p "$stage"
-          cp -R dist/Karnameh.app "$stage/"
+          cp -R "$APP" "$stage/"
           ln -s /Applications "$stage/Applications"
           cp "docs/fa/راهنمای کاربر.html" "$stage/"
           cp "README-macOS.md" "$stage/راهنمای نصب در مک.md"
-          dmg="dist/Karnameh-0.1.0-macOS-${{ matrix.arch }}.dmg"
-          hdiutil create -volname "Karnameh" -srcfolder "$stage" -ov -format UDZO "$dmg"
+          dmg="dist/PersonnelEvaluationReport-0.1.0-macOS-${{ matrix.arch }}.dmg"
+          hdiutil create -volname "Personnel Evaluation Report" -srcfolder "$stage" -ov -format UDZO "$dmg"
           mnt=$(hdiutil attach "$dmg" -nobrowse | tail -1 | awk -F'\t' '{print $NF}')
-          "$mnt/Karnameh.app/Contents/MacOS/Karnameh" --selftest "$RUNNER_TEMP/selftest-dmg"
+          "$mnt/Personnel Evaluation Report.app/Contents/MacOS/PersonnelEvaluationReport" --selftest "$RUNNER_TEMP/selftest-dmg"
           # macOS may briefly keep the volume busy after the app exits (e.g. Spotlight); retry, then force.
           for i in 1 2 3 4 5; do hdiutil detach "$mnt" && break; sleep 3; done
           if [ -d "$mnt" ]; then hdiutil detach "$mnt" -force; fi
@@ -98,5 +101,5 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: karnameh-macos-${{ matrix.arch }}
+          name: personnel-evaluation-report-macos-${{ matrix.arch }}
           path: artifacts/

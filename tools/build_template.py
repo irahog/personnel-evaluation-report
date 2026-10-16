@@ -2,8 +2,8 @@
 
 Layout is reconstructed from photos of the colleague's workbook (FinalExcel_1..3).
 Output:
-  {Template,karnameh/resources}/report_template.xlsx      – one blank sheet named «قالب»
-  {Template,karnameh/resources}/report_template_map.json  – field id -> cell address
+  {Template,personnel_evaluation_report/resources}/report_template.xlsx      – one blank sheet named «قالب»
+  {Template,personnel_evaluation_report/resources}/report_template_map.json  – field id -> cell address
 
 Run:  .venv/bin/python tools/build_template.py
 """
@@ -18,7 +18,7 @@ from openpyxl.worksheet.pagebreak import Break
 from openpyxl.worksheet.worksheet import Worksheet
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_DIRS = (ROOT / "Template", ROOT / "karnameh" / "resources")
+OUT_DIRS = (ROOT / "Template", ROOT / "personnel_evaluation_report" / "resources")
 
 FONT = "B Nazanin"
 SYMBOL_FONT = "Segoe UI Symbol"  # ☐ ☑ ★ … are not in the Persian fonts
