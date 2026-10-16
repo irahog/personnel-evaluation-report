@@ -19,11 +19,13 @@
 
 ## ۲. دریافت فایل نصب
 
-مسئول فنی فایل را از صفحهٔ GitHub پروژه برمی‌دارد: تب **Actions** ← آخرین اجرای موفق «macOS build and test» ← بخش **Artifacts**:
-- **personnel-evaluation-report-macos-arm64** برای مک‌های Apple Silicon
-- **personnel-evaluation-report-macos-x86_64** برای مک‌های اینتل
+به صفحهٔ دانلود بروید. به حساب گیت‌هاب نیاز **ندارید**:
 
-پس از باز کردن فایل فشرده، فایل `PersonnelEvaluationReport-0.1.0-macOS-….dmg` را دارید.
+**https://github.com/irahog/personnel-evaluation-report-releases/releases/latest**
+
+از بخش **Assets** فایل مناسب مک خود را بردارید:
+- `PersonnelEvaluationReport-<نسخه>-macOS-arm64.dmg` برای مک‌های Apple Silicon
+- `PersonnelEvaluationReport-<نسخه>-macOS-x86_64.dmg` برای مک‌های اینتل
 
 ## ۳. نصب
 

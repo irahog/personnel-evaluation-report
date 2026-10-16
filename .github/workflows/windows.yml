@@ -2,8 +2,10 @@ name: Windows build and test
 
 on:
   push:
+    branches: ["**"]   # tags are built by release.yml
   pull_request:
   workflow_dispatch:
+  workflow_call:       # reused by release.yml
 
 permissions:
   contents: read

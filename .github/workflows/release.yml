@@ -1,0 +1,90 @@
+name: Release
+
+# Push a tag like v0.1.0 to build, test and publish installers to the PUBLIC
+# repository irahog/personnel-evaluation-report-releases. Anyone can download
+# from there without a GitHub account; this (private) repository stays private.
+#
+# Requires the repository secret RELEASES_TOKEN: a fine-grained personal access
+# token limited to irahog/personnel-evaluation-report-releases with
+# "Contents: Read and write".
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+env:
+  RELEASES_REPO: irahog/personnel-evaluation-report-releases
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches the app version
+        run: |
+          v=$(python3 -c "import re;print(re.search(r'VERSION = \"(.+?)\"', open('personnel_evaluation_report/__init__.py').read()).group(1))")
+          iss=$(grep -oP '#define AppVersion "\K[^"]+' packaging/installer.iss)
+          echo "tag=$GITHUB_REF_NAME app=$v installer=$iss"
+          [ "$GITHUB_REF_NAME" = "v$v" ] || { echo "::error::Tag $GITHUB_REF_NAME does not match VERSION $v"; exit 1; }
+          [ "$iss" = "$v" ] || { echo "::error::installer.iss AppVersion $iss does not match VERSION $v"; exit 1; }
+      - name: Release token is configured
+        env:
+          TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          [ -n "$TOKEN" ] || { echo "::error::Secret RELEASES_TOKEN is missing (see the comment at the top of release.yml)"; exit 1; }
+
+  windows:
+    needs: check
+    uses: ./.github/workflows/windows.yml
+
+  macos:
+    needs: check
+    uses: ./.github/workflows/macos.yml
+
+  publish:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: personnel-evaluation-report-*
+          path: artifacts
+
+      - name: Collect release files
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir -p release
+          cp artifacts/personnel-evaluation-report-windows/PersonnelEvaluationReport-Setup-$v.exe release/
+          cp artifacts/personnel-evaluation-report-windows/PersonnelEvaluationReport-portable.zip \
+             release/PersonnelEvaluationReport-portable-$v.zip
+          cp artifacts/personnel-evaluation-report-macos-arm64/PersonnelEvaluationReport-$v-macOS-arm64.dmg release/
+          cp artifacts/personnel-evaluation-report-macos-x86_64/PersonnelEvaluationReport-$v-macOS-x86_64.dmg release/
+          cp README-Windows.md README-macOS.md release/
+          (cd release && sha256sum *.exe *.zip *.dmg > SHA256SUMS.txt)
+          ls -l release
+          cat release/SHA256SUMS.txt
+
+      - name: Publish to the public releases repository
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          cat > notes.md <<NOTES
+          نسخهٔ $v برنامهٔ «کارنامه پرسنلی».
+
+          | سیستم | فایل |
+          |---|---|
+          | ویندوز ۱۰/۱۱ (۶۴ بیتی) — نصب‌کننده | PersonnelEvaluationReport-Setup-$v.exe |
+          | ویندوز — قابل‌حمل | PersonnelEvaluationReport-portable-$v.zip |
+          | مک Apple Silicon | PersonnelEvaluationReport-$v-macOS-arm64.dmg |
+          | مک اینتل | PersonnelEvaluationReport-$v-macOS-x86_64.dmg |
+
+          راهنمای نصب: README-Windows.md و README-macOS.md (در فهرست فایل‌ها).
+          NOTES
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$RELEASES_REPO" --title "کارنامه پرسنلی $v" --notes-file notes.md

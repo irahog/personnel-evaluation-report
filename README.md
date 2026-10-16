@@ -160,6 +160,29 @@ Developer account.
 Local build on a Mac: `pip install -r requirements-dev.txt`, then
 `pyinstaller packaging/personnel_evaluation_report.spec --noconfirm`, which produces `dist/Personnel Evaluation Report.app`.
 
+## Publishing a release (public download, no GitHub account needed)
+
+This repository is private, so Actions artifacts need a signed-in collaborator. Releases are therefore
+published to the **public** repository
+[irahog/personnel-evaluation-report-releases](https://github.com/irahog/personnel-evaluation-report-releases),
+which contains only the download page and the release files, never the source code.
+
+1. Bump `VERSION` in `personnel_evaluation_report/__init__.py`, `AppVersion` in `packaging/installer.iss`,
+   the version in `packaging/version_info.txt`, and the `.dmg` name in `.github/workflows/macos.yml`.
+2. Commit, then tag and push, e.g. `git tag v0.2.0 && git push origin v0.2.0`.
+3. `.github/workflows/release.yml` checks that the tag matches the version, runs the full Windows and macOS
+   builds and tests (the same reusable workflows as on every push), and publishes:
+   - the Windows installer and portable zip,
+   - both `.dmg` files,
+   - `SHA256SUMS.txt`,
+   - the two Persian READMEs.
+
+   Users always find the newest files at `…/personnel-evaluation-report-releases/releases/latest`.
+
+The release job needs the secret `RELEASES_TOKEN`: a fine-grained personal access token restricted to the
+releases repository with **Contents: Read and write**. Set it with
+`gh secret set RELEASES_TOKEN --repo irahog/personnel-evaluation-report`.
+
 ## Windows build (CI)
 
 `.github/workflows/windows.yml` runs on every push. It:

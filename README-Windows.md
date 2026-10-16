@@ -19,15 +19,19 @@
 
 ## ۲. دریافت فایل نصب
 
-فایل نصب `PersonnelEvaluationReport-Setup-0.1.0.exe` است. مسئول فنی آن را از صفحهٔ GitHub پروژه برمی‌دارد: تب **Actions** ← آخرین اجرای موفق «Windows build and test» ← بخش **Artifacts** ← فایل **personnel-evaluation-report-windows**. سپس از طریق فلش یا پوشهٔ اشتراکی شبکه در اختیار کاربران می‌گذارد.
+به صفحهٔ دانلود بروید. به حساب گیت‌هاب نیاز **ندارید**:
 
-در فایل فشردهٔ `personnel-evaluation-report-windows`:
-- `PersonnelEvaluationReport-Setup-0.1.0.exe` — نصب‌کننده (پیشنهادی)
-- `PersonnelEvaluationReport-portable.zip` — نسخهٔ قابل‌حمل، بدون نصب
+**https://github.com/irahog/personnel-evaluation-report-releases/releases/latest**
+
+از بخش **Assets** یکی از این دو فایل را بردارید:
+- `PersonnelEvaluationReport-Setup-<نسخه>.exe` — نصب‌کننده (پیشنهادی)
+- `PersonnelEvaluationReport-portable-<نسخه>.zip` — نسخهٔ قابل‌حمل، بدون نصب
+
+اگر رایانه به اینترنت دسترسی ندارد، فایل را روی یک رایانهٔ دیگر دانلود کنید و با فلش یا پوشهٔ اشتراکی شبکه منتقل کنید.
 
 ## ۳. نصب
 
-1. روی `PersonnelEvaluationReport-Setup-0.1.0.exe` دوبار کلیک کنید.
+1. روی `PersonnelEvaluationReport-Setup-<نسخه>.exe` دوبار کلیک کنید.
 2. اگر پیام **«Windows protected your PC»** نمایش داده شد، روی **More info** و سپس **Run anyway** بزنید. این پیام به این دلیل است که برنامه امضای دیجیتال تجاری ندارد. اگر اجازهٔ این کار را ندارید، با واحد فناوری اطلاعات هماهنگ کنید.
 3. صفحه‌های نصب فارسی هستند. گزینهٔ **«ایجاد میان‌بر روی میز کار»** را فعال بگذارید و **نصب** را بزنید.
 4. نصب‌کننده این کارها را انجام می‌دهد:
@@ -36,7 +40,7 @@
    - میان‌بر «کارنامه پرسنلی» را در منوی Start و روی میز کار می‌سازد، همراه با «راهنمای کارنامه پرسنلی».
 
 ### نسخهٔ قابل‌حمل (بدون نصب)
-1. `PersonnelEvaluationReport-portable.zip` را در یک پوشه باز کنید (Extract All)، مثلاً در Documents.
+1. `PersonnelEvaluationReport-portable-<نسخه>.zip` را در یک پوشه باز کنید (Extract All)، مثلاً در Documents.
 2. در پوشهٔ `Personnel Evaluation Report`، فایل `PersonnelEvaluationReport.exe` را اجرا کنید.
 3. یک بار از **تنظیمات ← «نصب فونت‌های برنامه روی این رایانه»** فونت‌ها را نصب کنید.
 
