@@ -41,7 +41,7 @@
 
 ### نسخهٔ قابل‌حمل (بدون نصب)
 1. `PersonnelEvaluationReport-portable-<نسخه>.zip` را در یک پوشه باز کنید (Extract All)، مثلاً در Documents.
-2. در پوشهٔ `Personnel Evaluation Report`، فایل `PersonnelEvaluationReport.exe` را اجرا کنید.
+2. در پوشهٔ `PersonnelEvaluationReport`، فایل `PersonnelEvaluationReport.exe` را اجرا کنید.
 3. یک بار از **تنظیمات ← «نصب فونت‌های برنامه روی این رایانه»** فونت‌ها را نصب کنید.
 
 ## ۴. اجرا و بستن

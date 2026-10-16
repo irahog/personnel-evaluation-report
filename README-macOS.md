@@ -85,7 +85,7 @@
 
 | مشکل | راه‌حل |
 |---|---|
-| «Personnel Evaluation Report is damaged and can't be opened» یا باز نمی‌شود | بخش «اجرای اول» را انجام دهید. اگر گزینهٔ Open Anyway دیده نشد، مسئول فنی می‌تواند در Terminal این دستور را اجرا کند: `xattr -dr com.apple.quarantine /Applications/Personnel Evaluation Report.app` |
+| «Personnel Evaluation Report is damaged and can't be opened» یا باز نمی‌شود | بخش «اجرای اول» را انجام دهید. اگر گزینهٔ Open Anyway دیده نشد، مسئول فنی می‌تواند در Terminal این دستور را اجرا کند: `xattr -dr com.apple.quarantine "/Applications/Personnel Evaluation Report.app"` |
 | «You can't open the application… because this application is not supported on this Mac» | نسخهٔ اشتباه دانلود شده است. برای Apple Silicon نسخهٔ `arm64` و برای اینتل نسخهٔ `x86_64` لازم است. |
 | مرورگر باز نمی‌شود | مرورگر را دستی باز کنید و `http://127.0.0.1:8765/` را وارد کنید. اگر آن درگاه اشغال باشد، یکی از ۸۷۶۶ تا ۸۷۷۴ را امتحان کنید. |
 | پنجرهٔ انتخاب فایل دیده نمی‌شود | Mission Control (F3) را باز کنید؛ پنجره احتمالاً پشت مرورگر است. |
