@@ -75,16 +75,17 @@ jobs:
         run: |
           v="${GITHUB_REF_NAME#v}"
           cat > notes.md <<NOTES
-          نسخهٔ $v برنامهٔ «کارنامه پرسنلی».
+          Personnel Evaluation Report (کارنامه پرسنلی) version $v.
 
-          | سیستم | فایل |
+          | System | File |
           |---|---|
-          | ویندوز ۱۰/۱۱ (۶۴ بیتی) — نصب‌کننده | PersonnelEvaluationReport-Setup-$v.exe |
-          | ویندوز — قابل‌حمل | PersonnelEvaluationReport-portable-$v.zip |
-          | مک Apple Silicon | PersonnelEvaluationReport-$v-macOS-arm64.dmg |
-          | مک اینتل | PersonnelEvaluationReport-$v-macOS-x86_64.dmg |
+          | Windows 10/11 (64-bit), installer | PersonnelEvaluationReport-Setup-$v.exe |
+          | Windows, portable (no install) | PersonnelEvaluationReport-portable-$v.zip |
+          | macOS, Apple Silicon (M1/M2/M3…) | PersonnelEvaluationReport-$v-macOS-arm64.dmg |
+          | macOS, Intel | PersonnelEvaluationReport-$v-macOS-x86_64.dmg |
 
-          راهنمای نصب: README-Windows.md و README-macOS.md (در فهرست فایل‌ها).
+          Installation guides (Persian): README-Windows.md and README-macOS.md in the assets below.
+          Verify downloads against SHA256SUMS.txt.
           NOTES
           gh release create "$GITHUB_REF_NAME" release/* \
-            --repo "$RELEASES_REPO" --title "کارنامه پرسنلی $v" --notes-file notes.md
+            --repo "$RELEASES_REPO" --title "Personnel Evaluation Report $v" --notes-file notes.md
