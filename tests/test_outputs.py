@@ -211,3 +211,25 @@ def test_bundled_fonts_present_and_cover_persian():
     css = (fonts.FONTS_DIR.parent / "fonts.css").read_text(encoding="utf-8")
     for name in files:
         assert f"fonts/{name}" in css
+
+
+def test_install_user_fonts(tmp_path, monkeypatch):
+    registered = []
+    monkeypatch.setattr(fonts, "user_font_dir", lambda: tmp_path / "fonts")
+    monkeypatch.setattr(fonts, "_register_windows_font", lambda name, path: registered.append(name))
+    monkeypatch.setattr(fonts, "_broadcast_font_change", lambda: None)
+    done = fonts.install_user_fonts()
+    assert sorted(done) == sorted(fonts.bundled_files())
+    assert (tmp_path / "fonts" / "BNazanin.ttf").read_bytes() == fonts.bundled_files()["BNazanin.ttf"].read_bytes()
+    assert fonts.install_user_fonts() == []                 # idempotent
+    assert set(fonts.FULL_NAMES) == set(fonts.bundled_files())
+
+
+def test_install_fonts_route(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(fonts, "user_font_dir", lambda: tmp_path / "f")
+    monkeypatch.setattr(fonts, "_register_windows_font", lambda name, path: None)
+    monkeypatch.setattr(fonts, "_broadcast_font_change", lambda: None)
+    r = client.post("/settings/install-fonts", follow_redirects=True)
+    assert "نصب شد" in r.get_data(as_text=True)
+    r = client.post("/settings/install-fonts", follow_redirects=True)
+    assert "از قبل نصب" in r.get_data(as_text=True)

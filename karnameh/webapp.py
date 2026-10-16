@@ -4,7 +4,6 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-import sys
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -360,8 +359,25 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
     @app.post("/settings/fonts-folder")
     def open_fonts_folder():
         from .paths import FONTS_DIR
-        if sys.platform == "win32":
-            os.startfile(FONTS_DIR)  # type: ignore[attr-defined]
+        try:
+            fonts.open_in_file_manager(FONTS_DIR)
+        except OSError:
+            flash("باز کردن پوشهٔ فونت‌ها ممکن نشد.", "error")
+        return redirect(url_for("settings_page"))
+
+    @app.post("/settings/install-fonts")
+    def install_fonts():
+        try:
+            done = fonts.install_user_fonts()
+        except OSError:
+            log.info("font install failed")
+            flash("نصب فونت‌ها ممکن نشد. فایل‌های فونت را از «باز کردن پوشهٔ فونت‌های برنامه» دستی نصب کنید.", "error")
+            return redirect(url_for("settings_page"))
+        log.info("fonts installed count=%d", len(done))
+        if done:
+            flash(f"{to_fa_digits(str(len(done)))} فایل فونت برای کاربر فعلی نصب شد. اگر اکسل باز است، آن را ببندید و دوباره باز کنید.", "success")
+        else:
+            flash("فونت‌های همراه برنامه از قبل نصب بودند.", "success")
         return redirect(url_for("settings_page"))
 
     # ── quit ─────────────────────────────────────────────────────────────

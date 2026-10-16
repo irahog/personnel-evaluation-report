@@ -19,8 +19,12 @@
     {% endfor %}</tbody>
   </table>
   <p class="hint">فایل اکسل فونت را در خود ذخیره نمی‌کند؛ فقط نام فونت در آن ثبت می‌شود. برای نمایش درست، فونت باید روی هر رایانه‌ای که فایل را باز می‌کند نصب باشد.
-  نصب‌کنندهٔ برنامه فونت‌ها را نصب می‌کند. برای نصب دستی، روی فایل فونت دوبار کلیک و «Install» را بزنید.</p>
-  <form method="post" action="{{ url_for('open_fonts_folder') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="secondary">باز کردن پوشهٔ فونت‌های برنامه</button></form>
+  نصب‌کنندهٔ ویندوز فونت‌ها را خودکار نصب می‌کند؛ در مک یا نسخهٔ قابل‌حمل، دکمهٔ زیر را بزنید.</p>
+  <div class="row">
+    <form method="post" action="{{ url_for('install_fonts') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="primary">نصب فونت‌های برنامه روی این رایانه</button></form>
+    <form method="post" action="{{ url_for('open_fonts_folder') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="secondary">باز کردن پوشهٔ فونت‌های برنامه</button></form>
+  </div>
+  <p class="hint">نصب فقط برای کاربر فعلی انجام می‌شود و به دسترسی مدیر سیستم نیاز ندارد.</p>
 </section>
 
 <section class="card">

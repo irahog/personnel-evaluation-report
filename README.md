@@ -1,6 +1,6 @@
 # Karnameh — کارنامه پرسنلی
 
-A local Persian (RTL) web app for Windows. It builds the «کارنامه پرسنلی» evaluation report for one
+A local Persian (RTL) web app for Windows and macOS. It builds the «کارنامه پرسنلی» evaluation report for one
 employee at a time from the organization's personnel Excel workbook. Source fields are filled
 automatically, the user completes the manual fields in the browser, and the report can be:
 
@@ -11,7 +11,9 @@ automatically, the user completes the manual fields in the browser, and the repo
 
 PDF generation is out of scope by design: the browser's print dialog covers it.
 
-- End-user guide (Persian): [`docs/fa/راهنمای کاربر.html`](docs/fa/راهنمای%20کاربر.html)
+- **Install & use on Windows (Persian):** [`README-Windows.md`](README-Windows.md)
+- **Install & use on macOS (Persian):** [`README-macOS.md`](README-macOS.md)
+- Full end-user guide (Persian): [`docs/fa/راهنمای کاربر.html`](docs/fa/راهنمای%20کاربر.html)
 - Discovery notes and confirmed decisions: [`docs/STAGE1_DISCOVERY.md`](docs/STAGE1_DISCOVERY.md)
 
 ---
@@ -24,8 +26,8 @@ PDF generation is out of scope by design: the browser's print dialog covers it.
 | Excel I/O | openpyxl 3.1.5 | Reads `.xlsx` with cached formula values, writes styled templates, merges, print setup |
 | UI | Server-rendered Jinja templates and ~40 lines of vanilla JS | No build step; works offline; CSP `default-src 'self'` |
 | File picking | Native Tk dialog in a short-lived child process (`--dialog`) | The app needs the real **path** for staleness checks and for the shared workbook, which a browser `<input type=file>` cannot give |
-| Packaging | PyInstaller one-folder app plus an Inno Setup per-user installer | No admin rights; fonts installed per user; no Python needed on the target PC |
-| CI | GitHub Actions `windows-2022` | Tests on Windows, builds, smoke-tests the exe and the installed app |
+| Packaging | PyInstaller one-folder app; Windows: Inno Setup per-user installer; macOS: `Karnameh.app` in a `.dmg` (arm64 and x86_64 builds) | No admin rights; fonts installed per user; no Python needed on the target computer |
+| CI | GitHub Actions: `windows-2022`, `macos-14` (Apple Silicon), `macos-15-intel` | Tests on each OS, builds, smoke-tests the packaged app |
 
 Rejected alternatives (see the discovery doc §12): FastAPI (async/OpenAPI not needed), Streamlit (weak RTL, print and
 layout control), ASP.NET Core (fine but heavier for no gain in template filling), Node/Express (weaker
@@ -139,6 +141,25 @@ For UI work without native dialogs (e.g. driving the browser automatically), set
 `KARNAMEH_DEV_DIALOG_OPEN_SOURCE=/path/to.xlsx` (and `…_OPEN_SHARED` / `…_NEW_SHARED`). The dialog then
 returns that path. This is a development aid only.
 
+## macOS build (CI)
+
+`.github/workflows/macos.yml` builds on Apple Silicon (`macos-14`) and Intel (`macos-15-intel`). For each, it:
+
+1. runs the pytest suite;
+2. builds `Karnameh.app` and checks the binary's architecture;
+3. self-tests the packaged app from a path with spaces and Persian characters;
+4. installs the fonts with `--install-fonts` and checks that they're detected;
+5. starts the server and checks that it listens on 127.0.0.1 only;
+6. builds `Karnameh-<version>-macOS-<arch>.dmg`, mounts it and self-tests the app inside;
+7. uploads the `.dmg` as `karnameh-macos-<arch>`.
+
+The app is an `LSUIElement` agent: it has no Dock icon and the browser is its UI. It is ad-hoc signed by PyInstaller
+but not notarized, so Gatekeeper asks once on first launch (see `README-macOS.md`). Notarizing needs an Apple
+Developer account.
+
+Local build on a Mac: `pip install -r requirements-dev.txt`, then
+`pyinstaller packaging/karnameh.spec --noconfirm`, which produces `dist/Karnameh.app`.
+
 ## Windows build (CI)
 
 `.github/workflows/windows.yml` runs on every push. It:
@@ -180,7 +201,10 @@ See the handover summary, which states what was run where. As of this commit:
 - The browser UI was driven in a real browser.
 - The print layout was checked through Chrome's print-to-PDF.
 - The template was rendered by Microsoft Excel for Mac.
-- The Windows build, installer and font installation are verified only by the CI workflow.
+- The Windows build, installer and font installation are verified by the Windows CI workflow.
+- The macOS `.app` was built and self-tested on this Apple Silicon Mac; the Intel build is verified only by CI.
+- The native file dialog inside the packaged `.app` was checked to start without crashing, but its on-screen
+  appearance has not been checked automatically.
 
 ## Known limitations
 
@@ -191,4 +215,6 @@ See the handover summary, which states what was run where. As of this commit:
 - The Markdown output cannot reproduce merged cells, colours or symbols. It keeps all content and order.
 - `.xlsx` cannot embed fonts. Excel needs the fonts installed, which the installer does for the current user.
 - Partially completed reports are not persisted (by design).
-- The executable is not code-signed, so Windows SmartScreen may warn on first run.
+- The executable is not code-signed, so Windows SmartScreen may warn on first run. The macOS app is not
+  notarized, so Gatekeeper asks once on first launch.
+- On macOS, Excel has no `Segoe UI Symbol`, so ☐ ☑ use the Mac's own symbol font.

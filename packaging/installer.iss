@@ -23,6 +23,8 @@ SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\Karnameh.exe
+; 64-bit Intel/AMD Windows, or Windows 11 on ARM (x64 emulation). Refuses 32-bit and Windows 10 on ARM.
+ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]

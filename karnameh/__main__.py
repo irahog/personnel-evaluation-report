@@ -4,6 +4,7 @@
   karnameh --no-browser        start without opening a browser
   karnameh --dialog MODE DIR OUT   (internal) show a native file dialog
   karnameh --selftest OUTDIR   run an end-to-end check on the bundled synthetic workbook
+  karnameh --install-fonts     install the bundled fonts for the current user (no admin)
 """
 from __future__ import annotations
 
@@ -167,6 +168,7 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="karnameh")
     p.add_argument("--dialog", nargs=3, metavar=("MODE", "DIR", "OUT"))
     p.add_argument("--selftest", metavar="OUTDIR")
+    p.add_argument("--install-fonts", action="store_true", help="install bundled fonts for the current user")
     p.add_argument("--no-browser", action="store_true")
     p.add_argument("--port", type=int)
     args = p.parse_args(argv)
@@ -181,6 +183,10 @@ def main(argv: list[str] | None = None) -> int:
         run_dialog(*args.dialog)
         return 0
     setup_logging()
+    if args.install_fonts:
+        from .fonts import install_user_fonts
+        print("installed:", ", ".join(install_user_fonts()) or "nothing new")
+        return 0
     if args.selftest:
         return selftest(args.selftest)
     serve(open_browser=not args.no_browser, port=args.port)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,6 +93,74 @@ def is_installed(family: str) -> bool:
         except OSError:
             continue
     return False
+
+
+# Full font names as Windows registers them (value name in the Fonts registry key).
+FULL_NAMES = {
+    "BNazanin.ttf": "B Nazanin", "BNaznnBd.ttf": "B Nazanin Bold",
+    "BMITRA.TTF": "B Mitra", "BMitraBd.ttf": "B Mitra Bold",
+    "Vazirmatn-FD-Regular.ttf": "Vazirmatn FD Regular", "Vazirmatn-FD-Bold.ttf": "Vazirmatn FD Bold",
+}
+
+
+def user_font_dir() -> Path:
+    """Per-user font folder: no administrator rights needed."""
+    if sys.platform == "win32":
+        return Path(os.environ["LOCALAPPDATA"]) / "Microsoft" / "Windows" / "Fonts"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Fonts"
+    return Path.home() / ".local" / "share" / "fonts"
+
+
+def install_user_fonts() -> list[str]:
+    """Install the bundled fonts for the current user so Excel can use them.
+
+    Already-present files are left alone. Returns the file names that were installed.
+    Windows: copy to the per-user font folder and register under HKCU (Windows 10 1803+).
+    macOS: copy to ~/Library/Fonts (what Font Book's "Install" does for one user).
+    """
+    target = user_font_dir()
+    target.mkdir(parents=True, exist_ok=True)
+    done = []
+    for name, src in bundled_files().items():
+        dst = target / name
+        if not dst.exists():
+            shutil.copyfile(src, dst)
+            done.append(name)
+        if sys.platform == "win32":
+            _register_windows_font(FULL_NAMES[name], dst)
+    if done and sys.platform == "win32":
+        _broadcast_font_change()
+    return done
+
+
+def _register_windows_font(full_name: str, path: Path) -> None:
+    import winreg  # noqa: PLC0415 – Windows only
+
+    key_path = r"Software\Microsoft\Windows NT\CurrentVersion\Fonts"
+    with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+        winreg.SetValueEx(key, f"{full_name} (TrueType)", 0, winreg.REG_SZ, str(path))
+
+
+def _broadcast_font_change() -> None:
+    """Tell running programs that fonts changed (Excel may still need a restart)."""
+    try:
+        import ctypes
+        HWND_BROADCAST, WM_FONTCHANGE, SMTO_ABORTIFHUNG = 0xFFFF, 0x001D, 0x0002
+        ctypes.windll.user32.SendMessageTimeoutW(HWND_BROADCAST, WM_FONTCHANGE, 0, 0,
+                                                SMTO_ABORTIFHUNG, 1000, None)
+    except Exception:  # noqa: BLE001 – cosmetic only
+        pass
+
+
+def open_in_file_manager(path: Path) -> None:
+    import subprocess
+    if sys.platform == "win32":
+        os.startfile(path)  # type: ignore[attr-defined]
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", str(path)])
+    else:
+        subprocess.Popen(["xdg-open", str(path)])
 
 
 def bundled_files() -> dict[str, Path]:
