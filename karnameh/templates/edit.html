@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import section with context %}
+{% block content %}
+<section class="card">
+  <h2>۳. تکمیل کارنامهٔ {{ r.employee_name }}</h2>
+  <p class="hint">مقادیر «از فایل منبع» از فایل پرسنلی خوانده شده و در این صفحه قابل تغییر نیست؛ اگر نادرست است، فایل منبع را اصلاح و دوباره بارگذاری کنید.
+    هیچ امتیازی توسط برنامه محاسبه نمی‌شود؛ همهٔ نمره‌ها، جمع‌ها و میانگین‌ها را خودتان وارد کنید.</p>
+  {% set ws = r.warnings() %}
+  {% if ws %}<ul class="warnings">{% for w in ws %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+</section>
+<form method="post" action="{{ url_for('edit_report') }}" autocomplete="off" class="report-form" data-dirty-guard>
+  <input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="report-layout">
+  {% for sec in SECTIONS %}{{ section(r, sec, 'edit') }}{% endfor %}
+  </div>
+  <div class="actions sticky">
+    <button class="primary">بررسی و پیش‌نمایش گزارش</button>
+  </div>
+</form>
+{% endblock %}

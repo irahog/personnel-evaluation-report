@@ -1,0 +1,17 @@
+/* Bundled fonts: served locally, no internet needed. Times New Roman comes from Windows. */
+@font-face { font-family: "B Nazanin"; src: url("fonts/BNazanin.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "B Nazanin"; src: url("fonts/BNaznnBd.ttf") format("truetype"); font-weight: 700; }
+@font-face { font-family: "B Mitra"; src: url("fonts/BMITRA.TTF") format("truetype"); font-weight: 400; }
+@font-face { font-family: "B Mitra"; src: url("fonts/BMitraBd.ttf") format("truetype"); font-weight: 700; }
+@font-face { font-family: "Vazirmatn FD"; src: url("fonts/Vazirmatn-FD-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Vazirmatn FD"; src: url("fonts/Vazirmatn-FD-Bold.ttf") format("truetype"); font-weight: 700; }
+
+.f-b-nazanin { --font-main: "B Nazanin"; --font-scale: 1.12; }
+.f-b-mitra { --font-main: "B Mitra"; --font-scale: 1.12; }
+.f-vazirmatn-fd { --font-main: "Vazirmatn FD"; --font-scale: 0.92; }
+.f-times-new-roman { --font-main: "Times New Roman"; --font-scale: 1; }
+.fb-b-nazanin { --font-fallback: "B Nazanin"; }
+.fb-b-mitra { --font-fallback: "B Mitra"; }
+.fb-vazirmatn-fd { --font-fallback: "Vazirmatn FD"; }
+.fb-times-new-roman { --font-fallback: "Times New Roman"; }
+.f-b-nazanin, .f-b-mitra, .f-vazirmatn-fd, .f-times-new-roman { font-family: var(--font-main), var(--font-fallback, "Times New Roman"), "Segoe UI Symbol", serif; }

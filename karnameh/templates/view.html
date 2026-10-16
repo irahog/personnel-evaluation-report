@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import section with context %}
+{% block title %}کارنامه پرسنلی — {{ r.employee_name }}{% endblock %}
+{% block body_class %}report-page{% endblock %}
+{% block content %}
+<section class="card no-print">
+  <h2>۴. پیش‌نمایش، چاپ و دریافت فایل</h2>
+  {% set empty = r.empty_manual() %}
+  {% set ws = r.warnings() %}
+  {% if ws %}<ul class="warnings">{% for w in ws %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+  {% if empty %}<details class="empty"><summary>{{ fa(empty|length|string) }} مورد دستی خالی مانده است (نمایش فهرست)</summary><p>{{ empty|join('، ') }}</p></details>{% endif %}
+  <div class="actions">
+    <button type="button" class="primary" data-print>چاپ گزارش</button>
+    <a class="button" href="{{ url_for('download_xlsx') }}">دانلود اکسل</a>
+    <a class="button" href="{{ url_for('download_md') }}">دانلود مارک‌داون</a>
+    <form method="post" action="{{ url_for('append_shared') }}" class="inline">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="secondary" title="{{ settings.shared_workbook or 'تنظیم نشده' }}">افزودن به کارنامهٔ مشترک</button>
+    </form>
+    {% if s.pending_replace %}
+    <form method="post" action="{{ url_for('append_shared') }}" class="inline" data-confirm="برگهٔ «{{ s.pending_replace }}» در کارنامهٔ مشترک با این گزارش جایگزین شود؟">
+      <input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="replace" value="1">
+      <button class="danger">جایگزینی برگهٔ قبلی</button>
+    </form>
+    {% endif %}
+    <a class="button" href="{{ url_for('edit_report') }}">ویرایش فرم</a>
+    <form method="post" action="{{ url_for('new') }}" class="inline" data-confirm="گزارش جاری پاک شود و گزارش کارمند بعدی شروع شود؟ (اگر فایل‌ها را دریافت نکرده‌اید، ابتدا آن‌ها را دریافت کنید.)">
+      <input type="hidden" name="_csrf" value="{{ csrf }}"><button class="secondary">گزارش جدید</button>
+    </form>
+  </div>
+  <p class="hint">کارنامهٔ مشترک: <bdi dir="ltr">{{ settings.shared_workbook or '— تنظیم نشده (از صفحهٔ تنظیمات) —' }}</bdi></p>
+</section>
+
+<article class="report" aria-label="کارنامه پرسنلی">
+  <h1 class="report-title">کارنامه پرسنلی</h1>
+  <div class="report-layout">
+  {% for sec in SECTIONS %}{{ section(r, sec, 'view') }}{% endfor %}
+  </div>
+  <p class="source-line no-print">منبع اطلاعات: فایل «<bdi>{{ r.source_file }}</bdi>»، برگهٔ «{{ r.source_sheet }}»، ردیف {{ fa(r.source_row|string) }} — زمان تهیه: {{ r.created_fa }}</p>
+</article>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>فونت گزارش</h2>
+  <form method="post" action="{{ url_for('settings_page') }}" class="stack">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <label for="font">فونت اصلی (برنامه، گزارش مرورگر، چاپ و فایل اکسل):</label>
+    <select id="font" name="font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.font }}>{{ f.label }}</option>{% endfor %}</select>
+    <label for="fallback">فونت جایگزین (اگر فونت اصلی روی این رایانه نصب نباشد):</label>
+    <select id="fallback" name="fallback_font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.fallback_font }}>{{ f.label }}</option>{% endfor %}</select>
+    <button class="primary">ذخیرهٔ تنظیمات</button>
+  </form>
+  <table class="grid fonts">
+    <thead><tr><th>فونت</th><th>در مرورگر و چاپ</th><th>در اکسل (نصب روی ویندوز)</th></tr></thead>
+    <tbody>{% for f in font_status %}
+      <tr><td class="sample {{ f.family|font_class }}">{{ f.label }} — نمونه: کارنامهٔ پرسنلی ۱۴۰۵</td>
+        <td>{{ 'همراه برنامه' if f.bundled else 'از ویندوز' }}</td>
+        <td>{% if f.installed %}<span class="badge ok">نصب است</span>{% else %}<span class="badge bad">نصب نیست</span>{% endif %}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+  <p class="hint">فایل اکسل فونت را در خود ذخیره نمی‌کند؛ فقط نام فونت در آن ثبت می‌شود. برای نمایش درست، فونت باید روی هر رایانه‌ای که فایل را باز می‌کند نصب باشد.
+  نصب‌کنندهٔ برنامه فونت‌ها را نصب می‌کند. برای نصب دستی، روی فایل فونت دوبار کلیک و «Install» را بزنید.</p>
+  <form method="post" action="{{ url_for('open_fonts_folder') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="secondary">باز کردن پوشهٔ فونت‌های برنامه</button></form>
+</section>
+
+<section class="card">
+  <h2>کارنامهٔ مشترک</h2>
+  <p>هر گزارش به‌صورت یک برگهٔ جداگانه (به نام کارمند) به این فایل افزوده می‌شود.</p>
+  <p>فایل فعلی: <bdi dir="ltr">{{ settings.shared_workbook or '— تنظیم نشده —' }}</bdi>
+    {% if settings.shared_workbook %}{% if shared_exists %}<span class="badge ok">موجود</span>{% else %}<span class="badge">هنوز ساخته نشده؛ با اولین افزودن ساخته می‌شود</span>{% endif %}{% endif %}</p>
+  <div class="row">
+    <form method="post" action="{{ url_for('pick_shared') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="open"><button class="secondary">انتخاب کارنامهٔ مشترک موجود</button></form>
+    <form method="post" action="{{ url_for('pick_shared') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="new"><button class="secondary">ساخت کارنامهٔ مشترک تازه</button></form>
+  </div>
+  <p class="hint">کارنامه‌ای که شکل، تصویر یا کنترل فرم دارد (مانند فایل قدیمی همکار) پذیرفته نمی‌شود، چون ذخیرهٔ دوباره آن‌ها را از بین می‌برد.</p>
+</section>
+{% endblock %}

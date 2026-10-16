@@ -1,0 +1,33 @@
+{
+  "_comment": "Mapping of source-workbook columns. 'headers' lists the exact accepted header spellings (compared after the explicit normalization in normalize.header_key: whitespace collapse, Arabic ي/ك → ی/ک, all dash variants equal). No fuzzy matching. 'required': loading fails if the column is missing.",
+  "header_scan_rows": 15,
+  "fields": [
+    {"id": "row_no",          "headers": ["ردیف"],                                   "type": "text",        "required": false},
+    {"id": "first_name",      "headers": ["نام"],                                    "type": "text",        "required": true},
+    {"id": "last_name",       "headers": ["نام خانوادگی"],                           "type": "text",        "required": true},
+    {"id": "employment_type", "headers": ["نوع استخدام"],                            "type": "text",        "required": true},
+    {"id": "employment_status","headers": ["وضعیت اشتغال"],                          "type": "text",        "required": false},
+    {"id": "personnel_no",    "headers": ["شماره پرسنلی"],                           "type": "identifier",  "required": true},
+    {"id": "national_id",     "headers": ["شماره ملی"],                              "type": "national_id", "required": true},
+    {"id": "birth_date",      "headers": ["تاریخ تولد"],                             "type": "date",        "required": true},
+    {"id": "post_title",      "headers": ["عنوان پست سازمانی در ابلاغ"],             "type": "text",        "required": true},
+    {"id": "org_unit",        "headers": ["واحد سازمانی در ابلاغ"],                  "type": "text",        "required": false},
+    {"id": "last_appointment","headers": ["تاریخ آخرین انتصاب"],                     "type": "date",        "required": false},
+    {"id": "degree",          "headers": ["مدرک تحصیلی"],                            "type": "text",        "required": true},
+    {"id": "field_of_study",  "headers": ["رشته تحصیلی"],                            "type": "text",        "required": true},
+    {"id": "marital_status",  "headers": ["وضعیت تاهل", "وضعیت تأهل"],               "type": "text",        "required": true},
+    {"id": "children_allowance","headers": ["تعداد اولاد در ابلاغ ریالی"],           "type": "text",        "required": false},
+    {"id": "children_actual", "headers": ["تعداد اولاد واقعی"],                      "type": "text",        "required": false},
+    {"id": "work_dept_general","headers": ["محل خدمت ـ اداره کل"],                   "type": "text",        "required": false},
+    {"id": "work_dept",       "headers": ["محل خدمت ـ اداره/بخش"],                   "type": "text",        "required": true},
+    {"id": "divan_entry_date","headers": ["تاریخ ورود به دیوان"],                    "type": "date",        "required": true},
+    {"id": "divan_days",      "headers": ["روز خدمت در دیوان"],                      "type": "text",        "required": false},
+    {"id": "divan_months",    "headers": ["ماه خدمت در دیوان"],                      "type": "text",        "required": false},
+    {"id": "divan_years",     "headers": ["سال خدمت در دیوان"],                      "type": "text",        "required": false},
+    {"id": "gov_hire_date",   "headers": ["تاریخ استخدام در خدمات دولتی"],           "type": "date",        "required": false},
+    {"id": "gov_days",        "headers": ["روزسابقه خدمت دولتی", "روز سابقه خدمت دولتی"],   "type": "text", "required": false},
+    {"id": "gov_months",      "headers": ["ماه سابقه خدمت دولتی", "ماه سابقه خدمتی دولتی"], "type": "text", "required": false},
+    {"id": "gov_years",       "headers": ["سال سابقه خدمت دولتی", "سال سابقه خدمتی دولتی"], "type": "text", "required": false},
+    {"id": "mobile",          "headers": ["تلفن همراه"],                             "type": "phone",       "required": true}
+  ]
+}

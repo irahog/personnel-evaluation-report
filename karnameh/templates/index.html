@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>۱. فایل اطلاعات پرسنلی</h2>
+  {% if s.workbook %}
+    {% set wb = s.workbook %}
+    <dl class="status">
+      <dt>فایل</dt><dd><bdi>{{ wb.file_name }}</bdi></dd>
+      <dt>مسیر</dt><dd class="path"><bdi dir="ltr">{{ wb.path }}</bdi></dd>
+      <dt>برگه</dt><dd>{{ wb.sheet_name }} (سطر عنوان: {{ fa(wb.header_row|string) }})</dd>
+      <dt>تعداد کارمندان</dt><dd>{{ fa(wb.employees|length|string) }}</dd>
+      <dt>زمان بارگذاری</dt><dd>{{ wb.loaded_at|fa_time }}</dd>
+      <dt>وضعیت</dt><dd>{% if stale %}<span class="badge bad">تغییر کرده — بارگذاری دوباره لازم است</span>{% else %}<span class="badge ok">بارگذاری‌شده و معتبر</span>{% endif %}</dd>
+    </dl>
+    {% if wb.warnings %}<ul class="warnings">{% for w in wb.warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+  {% else %}
+    <p>هنوز فایلی انتخاب نشده است. فایل اکسل اطلاعات پرسنلی را انتخاب کنید. فایل فقط خوانده می‌شود و تغییری در آن داده نمی‌شود.</p>
+  {% endif %}
+  {% if s.sheet_choice %}
+    <form method="post" action="{{ url_for('choose_sheet') }}" class="row">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label for="sheet">برگهٔ اطلاعات پرسنلی:</label>
+      <select id="sheet" name="sheet">{% for n in s.sheet_choice[1] %}<option>{{ n }}</option>{% endfor %}</select>
+      <button class="primary">بارگذاری این برگه</button>
+    </form>
+  {% endif %}
+  <div class="row">
+    <form method="post" action="{{ url_for('pick_source') }}" data-busy="پنجرهٔ انتخاب فایل باز شد…">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="{{ 'secondary' if s.workbook else 'primary' }}">{{ 'انتخاب فایل دیگر' if s.workbook else 'انتخاب فایل اطلاعات پرسنلی' }}</button>
+    </form>
+    {% if s.workbook %}
+    <form method="post" action="{{ url_for('reload_source') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="{{ 'primary' if stale else 'secondary' }}">بارگذاری دوباره</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h2>۲. جست‌وجوی کارمند</h2>
+  {% if s.report %}
+    <p class="msg info">گزارش <strong>{{ s.report.employee_name }}</strong> در حال تکمیل است.
+      <a href="{{ url_for('edit_report') }}">ادامهٔ گزارش</a>. با جست‌وجوی کارمند دیگر، اطلاعات این گزارش پاک می‌شود.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('search') }}" class="row" autocomplete="off" {% if s.report %}data-confirm="گزارش جاری پاک شود و گزارش تازه شروع شود؟"{% endif %}>
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <label for="nid">شماره ملی:</label>
+    <input id="nid" name="national_id" class="nid" inputmode="numeric" maxlength="20" placeholder="مثلاً ۰۱۲۳۴۵۶۷۸۹"
+           {% if not s.workbook or stale %}disabled{% endif %} autofocus>
+    <button class="primary" {% if not s.workbook or stale %}disabled{% endif %}>جست‌وجو</button>
+  </form>
+  <p class="hint">ارقام فارسی، عربی یا انگلیسی پذیرفته می‌شود. جست‌وجو فقط با تطابق کامل شماره ملی انجام می‌شود.</p>
+</section>
+{% endblock %}

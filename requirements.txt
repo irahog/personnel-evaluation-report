@@ -1,0 +1,13 @@
+# Runtime dependencies (pinned). Python 3.12 is used for the Windows build.
+flask==3.1.3
+waitress==3.0.2
+openpyxl==3.1.5
+# transitive (pinned for reproducible builds)
+werkzeug==3.1.9
+jinja2==3.1.6
+markupsafe==3.0.4
+itsdangerous==2.2.0
+click==8.5.0
+blinker==1.9.0
+et-xmlfile==2.0.0
+colorama==0.4.6; sys_platform == "win32"

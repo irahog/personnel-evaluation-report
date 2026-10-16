@@ -1,0 +1,78 @@
+{# Inputs for the edit form, generated from FIELDS. #}
+{% macro input(r, fid, compact=false) -%}
+{%- set f = FIELDS[fid] -%}
+{%- set err = r.errors.get(fid) -%}
+{%- if f.kind == 'auto' and f.input == 'marital' -%}
+  {%- if r.marital_from_source -%}
+    <span class="marks auto" title="از فایل منبع">{% for k, lbl in MARITAL_LABELS.items() %}<span class="mark">{{ '☑' if r.marital == k else '☐' }} {{ lbl }}</span>{% endfor %}</span>
+  {%- else -%}
+    <span class="marks">{% for k, lbl in MARITAL_LABELS.items() %}<label class="mark"><input type="radio" name="marital" value="{{ k }}" {{ 'checked' if r.marital == k }}> {{ lbl }}</label>{% endfor %}
+    <label class="mark"><input type="radio" name="marital" value="" {{ 'checked' if not r.marital }}> نامشخص</label></span>
+    <span class="src-note">مقدار فایل منبع: «{{ r.marital_source or 'خالی' }}»</span>
+  {%- endif -%}
+{%- elif f.kind == 'auto' -%}
+  {%- set v = r.auto.get(fid, '') -%}
+  {%- if v %}<output class="auto"><bdi>{{ v }}</bdi></output>{% else %}<output class="auto missing">در فایل منبع خالی است</output>{% endif -%}
+{%- elif f.input == 'check' -%}
+  <input type="checkbox" id="{{ fid }}" name="{{ fid }}" value="1" {{ 'checked' if r.manual.get(fid) }} aria-label="{{ f.label }}">
+{%- elif f.input == 'textarea' -%}
+  <textarea id="{{ fid }}" name="{{ fid }}" rows="{{ 2 if compact else 3 }}" aria-label="{{ f.label }}" {% if err %}aria-invalid="true"{% endif %}>{{ r.manual.get(fid, '') }}</textarea>
+{%- else -%}
+  {%- set v = r.manual.get(fid, '') -%}
+  <input id="{{ fid }}" name="{{ fid }}" value="{{ r.text(fid) if f.input in ('number','count','date') and not err else v }}" aria-label="{{ f.label }}"
+    class="in-{{ f.input }}" {% if f.input in ('number','count') %}inputmode="decimal"{% endif %}
+    {% if f.input == 'date' %}placeholder="۱۴۰۵/۰۷/۲۴"{% endif %} {% if err %}aria-invalid="true"{% endif %}>
+{%- endif -%}
+{%- if err %}<span class="err">{{ err }}</span>{% endif -%}
+{%- endmacro %}
+
+{# Read-only value for the report view (same data as Markdown / Excel). #}
+{% macro value(r, fid) -%}
+{%- set f = FIELDS[fid] -%}
+{%- if f.input == 'marital' -%}
+  <span class="marks">{% for k, lbl in MARITAL_LABELS.items() %}<span class="mark">{{ '☑' if r.marital == k else '☐' }} {{ lbl }}</span>{% endfor %}</span>
+{%- elif f.input == 'check' -%}
+  <span class="mark big">{{ r.text(fid) }}</span>
+{%- else -%}
+  <bdi>{{ r.text(fid) }}</bdi>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro section(r, sec, mode) -%}
+{%- set cell = input if mode == 'edit' else value -%}
+{%- if sec is instanceof Banner -%}
+  <h2 class="banner">{{ sec.title }}</h2>
+{%- elif sec is instanceof FieldsSection and sec.layout == 'row' -%}
+  <section class="rsec fields signature">
+    <h3>{{ sec.title }}</h3>
+    <table class="grid">
+      <thead><tr>{% for fid in sec.fields %}<th scope="col">{% if mode == 'edit' %}<label for="{{ fid }}">{{ FIELDS[fid].label }}</label>{% else %}{{ FIELDS[fid].label }}{% endif %}</th>{% endfor %}</tr></thead>
+      <tbody><tr>{% for fid in sec.fields %}<td class="val in-{{ FIELDS[fid].input }}">{{ cell(r, fid) }}</td>{% endfor %}</tr></tbody>
+    </table>
+  </section>
+{%- elif sec is instanceof FieldsSection -%}
+  <section class="rsec fields">
+    <h3>{{ sec.title }}</h3>
+    <table class="kv">
+      {%- for fid in sec.fields %}
+      <tr class="{{ 'auto-row' if FIELDS[fid].kind == 'auto' }}"><th scope="row">{% if mode == 'edit' and FIELDS[fid].input not in ('marital',) and FIELDS[fid].kind == 'manual' %}<label for="{{ fid }}">{{ FIELDS[fid].label }}</label>{% else %}{{ FIELDS[fid].label }}{% endif %}
+        {%- if mode == 'edit' %} <span class="tag {{ FIELDS[fid].kind }}">{{ 'از فایل منبع' if FIELDS[fid].kind == 'auto' else 'ورود دستی' }}</span>{% endif %}</th>
+        <td>{{ cell(r, fid) }}</td></tr>
+      {%- endfor %}
+    </table>
+  </section>
+{%- else -%}
+  <section class="rsec table">
+    <h3>{{ sec.title }}</h3>
+    <table class="grid">
+      <thead><tr>{% for c in sec.columns %}<th scope="col">{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {%- for row in sec.rows %}
+        <tr>{% for c in row %}{% if c is instanceof Static %}<td class="static">{{ c.text }}</td>{% else %}<td class="val {{ 'in-' ~ FIELDS[c].input }}">{{ cell(r, c, true) if mode == 'edit' else cell(r, c) }}</td>{% endif %}{% endfor %}</tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+    {% if sec.note %}<p class="note">{{ sec.note }}</p>{% endif %}
+  </section>
+{%- endif -%}
+{%- endmacro %}

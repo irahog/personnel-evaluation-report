@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl" class="{{ settings.font|font_class }} fb-{{ settings.fallback_font|font_slug }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ title }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+{% block head %}{% endblock %}
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="topbar no-print">
+  <a class="brand" href="{{ url_for('index') }}">{{ title }}</a>
+  <nav>
+    <a href="{{ url_for('index') }}">صفحهٔ اصلی</a>
+    {% if s.report %}<a href="{{ url_for('edit_report') }}">فرم گزارش جاری</a>{% endif %}
+    <a href="{{ url_for('settings_page') }}">تنظیمات</a>
+    <form method="post" action="{{ url_for('quit_app') }}" class="inline" data-confirm="برنامه بسته شود؟ اطلاعات بارگذاری‌شده و گزارش جاری از حافظه پاک می‌شود.">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button class="link danger">خروج از برنامه</button>
+    </form>
+  </nav>
+</header>
+<main>
+  {% if stale %}<div class="msg error no-print" role="alert">{{ stale }}</div>{% endif %}
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="msg {{ cat }} no-print" role="{{ 'alert' if cat == 'error' else 'status' }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  <div id="font-warning" class="msg warning no-print" hidden>فونت انتخاب‌شده در این مرورگر در دسترس نیست و از فونت جایگزین «{{ settings.fallback_font }}» استفاده می‌شود.</div>
+  {% block content %}{% endblock %}
+</main>
+<span id="font-probe" data-font="{{ settings.font }}" hidden></span>
+</body>
+</html>
