@@ -26,7 +26,9 @@ UninstallDisplayIcon={app}\Karnameh.exe
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
-Name: "fa"; MessagesFile: "Farsi.isl"   ; unofficial translation from jrsoftware/issrc (Inno Setup 6.5+)
+; Farsi.isl: unofficial translation from jrsoftware/issrc (needs Inno Setup 6.5+).
+; Inno Setup does not allow comments at the end of an entry line.
+Name: "fa"; MessagesFile: "Farsi.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
