@@ -85,7 +85,12 @@ jobs:
           cp "docs/fa/راهنمای کاربر.html" "$stage/"
           cp "README-macOS.md" "$stage/راهنمای نصب در مک.md"
           dmg="dist/PersonnelEvaluationReport-0.1.0-macOS-${{ matrix.arch }}.dmg"
-          hdiutil create -volname "Personnel Evaluation Report" -srcfolder "$stage" -ov -format UDZO "$dmg"
+          # hdiutil on hosted Mac runners intermittently fails with "Resource busy"; retry.
+          for i in 1 2 3 4 5; do
+            hdiutil create -volname "Personnel Evaluation Report" -srcfolder "$stage" -ov -format UDZO "$dmg" && break
+            echo "hdiutil create failed (attempt $i), retrying"; rm -f "$dmg"; sleep 10
+          done
+          [ -f "$dmg" ] || { echo "::error::could not create $dmg"; exit 1; }
           mnt=$(hdiutil attach "$dmg" -nobrowse | tail -1 | awk -F'\t' '{print $NF}')
           "$mnt/Personnel Evaluation Report.app/Contents/MacOS/PersonnelEvaluationReport" --selftest "$RUNNER_TEMP/selftest-dmg"
           # macOS may briefly keep the volume busy after the app exits (e.g. Spotlight); retry, then force.
