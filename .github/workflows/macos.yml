@@ -83,7 +83,9 @@ jobs:
           hdiutil create -volname "Karnameh" -srcfolder "$stage" -ov -format UDZO "$dmg"
           mnt=$(hdiutil attach "$dmg" -nobrowse | tail -1 | awk -F'\t' '{print $NF}')
           "$mnt/Karnameh.app/Contents/MacOS/Karnameh" --selftest "$RUNNER_TEMP/selftest-dmg"
-          hdiutil detach "$mnt"
+          # macOS may briefly keep the volume busy after the app exits (e.g. Spotlight); retry, then force.
+          for i in 1 2 3 4 5; do hdiutil detach "$mnt" && break; sleep 3; done
+          if [ -d "$mnt" ]; then hdiutil detach "$mnt" -force; fi
 
       - name: Collect artifacts
         if: always()
