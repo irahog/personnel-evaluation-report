@@ -2,7 +2,7 @@
 ; Build: iscc packaging\installer.iss   (after PyInstaller has produced dist\PersonnelEvaluationReport)
 
 #define AppName "کارنامه پرسنلی"
-#define AppVersion "0.2.0"
+#define AppVersion "0.2.1"
 #define SrcDir "..\dist\PersonnelEvaluationReport"
 #define FontDir "..\dist\PersonnelEvaluationReport\_internal\personnel_evaluation_report\static\fonts"
 
