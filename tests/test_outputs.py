@@ -207,7 +207,7 @@ def test_font_decision(monkeypatch):
 
 def test_bundled_fonts_present_and_cover_persian():
     files = fonts.bundled_files()
-    assert len(files) == 6 and all(p.exists() for p in files.values())
+    assert len(files) == 7 and all(p.exists() for p in files.values())
     css = (fonts.FONTS_DIR.parent / "fonts.css").read_text(encoding="utf-8")
     for name in files:
         assert f"fonts/{name}" in css

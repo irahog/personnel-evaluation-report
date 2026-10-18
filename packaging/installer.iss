@@ -44,6 +44,7 @@ Source: "{#FontDir}\BMITRA.TTF"; DestDir: "{autofonts}"; FontInstall: "B Mitra";
 Source: "{#FontDir}\BMitraBd.ttf"; DestDir: "{autofonts}"; FontInstall: "B Mitra Bold"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#FontDir}\Vazirmatn-FD-Regular.ttf"; DestDir: "{autofonts}"; FontInstall: "Vazirmatn FD Regular"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#FontDir}\Vazirmatn-FD-Bold.ttf"; DestDir: "{autofonts}"; FontInstall: "Vazirmatn FD Bold"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "{#FontDir}\BTitrBd.ttf"; DestDir: "{autofonts}"; FontInstall: "B Titr Bold"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "..\docs\fa\راهنمای کاربر.html"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

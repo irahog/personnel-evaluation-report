@@ -28,6 +28,14 @@ FONTS: dict[str, FontInfo] = {
                  ("BMITRA.TTF", "BMitraBd.ttf", "BMitra.ttf")),
         FontInfo("Vazirmatn FD", "وزیرمتن با ارقام فارسی (Vazirmatn FD)", "Vazirmatn-FD-Regular.ttf",
                  "Vazirmatn-FD-Bold.ttf", ("Vazirmatn-FD-Regular.ttf",)),
+        # B Titr is a display face: one (bold) weight, used for both regular and bold text.
+        FontInfo("B Titr", "بی تیتر (B Titr)", "BTitrBd.ttf", "BTitrBd.ttf",
+                 ("BTitrBd.ttf", "BTITRBD.TTF", "BTitr.ttf")),
+        # IRANSansX (Persian-digit variant) is a commercial FontIran font: never bundled; used when
+        # the organisation has installed its licensed copy.
+        FontInfo("IRANSansXFaNum", "ایران‌سنس ایکس با ارقام فارسی (IRANSansX FaNum)", None, None,
+                 ("IRANSansXFaNum-Regular.ttf", "IRANSansXFaNum-Regular.otf", "IRANSansXFaNum.ttf",
+                  "IRANSansX-FaNum-Regular.ttf")),
         # Times New Roman ships with Windows and may not be redistributed, so it is not bundled.
         FontInfo("Times New Roman", "تایمز نیو رومن (Times New Roman)", None, None,
                  ("times.ttf", "Times New Roman.ttf")),
@@ -100,6 +108,7 @@ FULL_NAMES = {
     "BNazanin.ttf": "B Nazanin", "BNaznnBd.ttf": "B Nazanin Bold",
     "BMITRA.TTF": "B Mitra", "BMitraBd.ttf": "B Mitra Bold",
     "Vazirmatn-FD-Regular.ttf": "Vazirmatn FD Regular", "Vazirmatn-FD-Bold.ttf": "Vazirmatn FD Bold",
+    "BTitrBd.ttf": "B Titr Bold",
 }
 
 

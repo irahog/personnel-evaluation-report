@@ -91,7 +91,7 @@ jobs:
           # Fonts must now be visible to Excel (registered for the current user).
           $fonts = Get-ItemProperty "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -ErrorAction SilentlyContinue
           $fonts | Format-List
-          foreach ($f in "B Nazanin", "B Mitra", "Vazirmatn FD") {
+          foreach ($f in "B Nazanin", "B Mitra", "Vazirmatn FD", "B Titr") {
             $line = Select-String -Path "$out\selftest.txt" -Pattern "font $f installed=True" -SimpleMatch
             if (-not $line) { throw "font '$f' not detected as installed after setup" }
           }

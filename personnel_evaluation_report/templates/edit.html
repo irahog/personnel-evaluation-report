@@ -3,7 +3,7 @@
 {% from "_macros.html" import section with context %}
 {% block content %}
 <section class="card">
-  <h2>۳. تکمیل کارنامهٔ {{ r.employee_name }}</h2>
+  <h2><span class="step">۳</span>تکمیل کارنامهٔ {{ r.employee_name }}</h2>
   <p class="hint">مقادیر «از فایل منبع» از فایل پرسنلی خوانده شده و در این صفحه قابل تغییر نیست؛ اگر نادرست است، فایل منبع را اصلاح و دوباره بارگذاری کنید.
     هیچ امتیازی توسط برنامه محاسبه نمی‌شود؛ همهٔ نمره‌ها، جمع‌ها و میانگین‌ها را خودتان وارد کنید.</p>
   {% set ws = r.warnings() %}
@@ -15,6 +15,8 @@
   {% for sec in SECTIONS %}{{ section(r, sec, 'edit') }}{% endfor %}
   </div>
   <div class="actions sticky">
+    <span class="hint">فرم خودکار ذخیره نمی‌شود؛ پس از تکمیل، دکمهٔ روبه‌رو را بزنید.</span>
+    <span class="spacer"></span>
     <button class="primary">بررسی و پیش‌نمایش گزارش</button>
   </div>
 </form>

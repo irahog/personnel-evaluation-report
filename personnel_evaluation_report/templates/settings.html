@@ -2,40 +2,62 @@
 {% block content %}
 <section class="card">
   <h2>فونت گزارش</h2>
-  <form method="post" action="{{ url_for('settings_page') }}" class="stack">
+  <form method="post" action="{{ url_for('settings_page') }}">
     <input type="hidden" name="_csrf" value="{{ csrf }}">
-    <label for="font">فونت اصلی (برنامه، گزارش مرورگر، چاپ و فایل اکسل):</label>
-    <select id="font" name="font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.font }}>{{ f.label }}</option>{% endfor %}</select>
-    <label for="fallback">فونت جایگزین (اگر فونت اصلی روی این رایانه نصب نباشد):</label>
-    <select id="fallback" name="fallback_font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.fallback_font }}>{{ f.label }}</option>{% endfor %}</select>
-    <button class="primary">ذخیرهٔ تنظیمات</button>
+    <div class="form-grid">
+      <label class="field"><span>فونت اصلی</span>
+        <select name="font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.font }}>{{ f.label }}</option>{% endfor %}</select>
+        <small class="hint">برای برنامه، گزارش مرورگر، چاپ و فایل اکسل</small>
+      </label>
+      <label class="field"><span>فونت جایگزین</span>
+        <select name="fallback_font">{% for f in fonts.values() %}<option value="{{ f.family }}" {{ 'selected' if f.family == settings.fallback_font }}>{{ f.label }}</option>{% endfor %}</select>
+        <small class="hint">اگر فونت اصلی روی این رایانه نصب نباشد</small>
+      </label>
+    </div>
+    <div class="card-foot">
+      <p class="hint">تغییر فونت روی همهٔ گزارش‌های بعدی و فایل‌های اکسل تازه اعمال می‌شود.</p>
+      <button class="primary">ذخیرهٔ تنظیمات</button>
+    </div>
   </form>
-  <table class="grid fonts">
-    <thead><tr><th>فونت</th><th>در مرورگر و چاپ</th><th>در اکسل (نصب روی ویندوز)</th></tr></thead>
-    <tbody>{% for f in font_status %}
-      <tr><td class="sample {{ f.family|font_class }}">{{ f.label }} — نمونه: کارنامهٔ پرسنلی ۱۴۰۵</td>
-        <td>{{ 'همراه برنامه' if f.bundled else 'از ویندوز' }}</td>
-        <td>{% if f.installed %}<span class="badge ok">نصب است</span>{% else %}<span class="badge bad">نصب نیست</span>{% endif %}</td></tr>
-    {% endfor %}</tbody>
-  </table>
-  <p class="hint">فایل اکسل فونت را در خود ذخیره نمی‌کند؛ فقط نام فونت در آن ثبت می‌شود. برای نمایش درست، فونت باید روی هر رایانه‌ای که فایل را باز می‌کند نصب باشد.
-  نصب‌کنندهٔ ویندوز فونت‌ها را خودکار نصب می‌کند؛ در مک یا نسخهٔ قابل‌حمل، دکمهٔ زیر را بزنید.</p>
-  <div class="row">
-    <form method="post" action="{{ url_for('install_fonts') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="primary">نصب فونت‌های برنامه روی این رایانه</button></form>
-    <form method="post" action="{{ url_for('open_fonts_folder') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="secondary">باز کردن پوشهٔ فونت‌های برنامه</button></form>
+
+  <ul class="font-list" aria-label="وضعیت فونت‌ها">
+    <li class="head"><span>فونت و نمونه</span><span class="col">در مرورگر و چاپ</span><span class="col">در اکسل این رایانه</span></li>
+    {% for f in font_status %}
+    <li class="{{ 'current' if f.family == settings.font }}">
+      <span class="{{ f.family|font_class }}">
+        <span class="font-name">{{ f.label }}{% if f.family == settings.font %}<span class="current-tag">فونت فعلی</span>{% endif %}</span>
+        <span class="font-sample">کارنامهٔ پرسنلی ۱۴۰۵ — شاخص و نمره</span>
+      </span>
+      <span class="col">{% if f.bundled %}<span class="badge muted">همراه برنامه</span>{% else %}<span class="badge muted">باید نصب باشد</span>{% endif %}</span>
+      <span class="col">{% if f.installed %}<span class="badge ok">نصب است</span>{% else %}<span class="badge bad">نصب نیست</span>{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="hint">فایل اکسل فونت را در خود ذخیره نمی‌کند و فقط نام فونت در آن ثبت می‌شود؛ فونت باید روی هر رایانه‌ای که فایل را باز می‌کند نصب باشد.
+    نصب‌کنندهٔ ویندوز فونت‌های همراه برنامه را خودکار نصب می‌کند. «ایران‌سنس ایکس» و «تایمز نیو رومن» همراه برنامه نیستند و باید جداگانه روی رایانه نصب باشند.</p>
+  <div class="card-foot">
+    <p class="hint">نصب فقط برای کاربر فعلی انجام می‌شود و به دسترسی مدیر سیستم نیاز ندارد.</p>
+    <div class="btn-group">
+      <form method="post" action="{{ url_for('open_fonts_folder') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button>باز کردن پوشهٔ فونت‌ها</button></form>
+      <form method="post" action="{{ url_for('install_fonts') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="primary">نصب فونت‌های همراه برنامه</button></form>
+    </div>
   </div>
-  <p class="hint">نصب فقط برای کاربر فعلی انجام می‌شود و به دسترسی مدیر سیستم نیاز ندارد.</p>
 </section>
 
 <section class="card">
   <h2>کارنامهٔ مشترک</h2>
-  <p>هر گزارش به‌صورت یک برگهٔ جداگانه (به نام کارمند) به این فایل افزوده می‌شود.</p>
-  <p>فایل فعلی: <bdi dir="ltr">{{ settings.shared_workbook or '— تنظیم نشده —' }}</bdi>
-    {% if settings.shared_workbook %}{% if shared_exists %}<span class="badge ok">موجود</span>{% else %}<span class="badge">هنوز ساخته نشده؛ با اولین افزودن ساخته می‌شود</span>{% endif %}{% endif %}</p>
-  <div class="row">
-    <form method="post" action="{{ url_for('pick_shared') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="open"><button class="secondary">انتخاب کارنامهٔ مشترک موجود</button></form>
-    <form method="post" action="{{ url_for('pick_shared') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="new"><button class="secondary">ساخت کارنامهٔ مشترک تازه</button></form>
+  <p class="hint">هر گزارش به‌صورت یک برگهٔ جداگانه (به نام کارمند) به این فایل افزوده می‌شود.</p>
+  <div class="field">
+    <span>فایل فعلی
+      {% if settings.shared_workbook %}{% if shared_exists %}<span class="badge ok">موجود</span>{% else %}<span class="badge muted">با اولین افزودن ساخته می‌شود</span>{% endif %}{% endif %}</span>
+    <div class="code-box">{{ settings.shared_workbook or '— تنظیم نشده —' }}</div>
   </div>
-  <p class="hint">کارنامه‌ای که شکل، تصویر یا کنترل فرم دارد (مانند فایل قدیمی همکار) پذیرفته نمی‌شود، چون ذخیرهٔ دوباره آن‌ها را از بین می‌برد.</p>
+  <div class="card-foot">
+    <p class="hint">کارنامه‌ای که شکل یا کنترل فرم دارد (مانند فایل قدیمی همکار) پذیرفته نمی‌شود، چون ذخیرهٔ دوباره آن‌ها را از بین می‌برد.</p>
+    <div class="btn-group">
+      <form method="post" action="{{ url_for('pick_shared') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="new"><button>ساخت کارنامهٔ تازه</button></form>
+      <form method="post" action="{{ url_for('pick_shared') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="mode" value="open"><button class="primary">انتخاب کارنامهٔ موجود</button></form>
+    </div>
+  </div>
 </section>
 {% endblock %}

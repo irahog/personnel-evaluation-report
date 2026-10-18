@@ -154,7 +154,7 @@ def selftest(outdir: str) -> int:
     r = c.post("/report/shared", data={"_csrf": token}, follow_redirects=True)
     check("append to shared workbook", shared.exists() and "افزوده شد" in r.get_data(as_text=True))
     from .paths import FONTS_DIR, TEMPLATE_XLSX
-    check("bundled resources", TEMPLATE_XLSX.exists() and len(list(FONTS_DIR.glob("*.[tT][tT][fF]"))) == 6)
+    check("bundled resources", TEMPLATE_XLSX.exists() and len(list(FONTS_DIR.glob("*.[tT][tT][fF]"))) == 7)
     _ = export_md  # imported to make sure the module is bundled
     from . import fonts
     for f in fonts.status():

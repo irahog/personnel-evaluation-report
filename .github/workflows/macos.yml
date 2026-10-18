@@ -60,7 +60,7 @@ jobs:
           ls ~/Library/Fonts
           out="$RUNNER_TEMP/fonts-check"
           "$BIN" --selftest "$out"
-          for f in "B Nazanin" "B Mitra" "Vazirmatn FD"; do
+          for f in "B Nazanin" "B Mitra" "Vazirmatn FD" "B Titr"; do
             grep -q "font $f installed=True" "$out/selftest.txt" || { echo "font $f not detected"; exit 1; }
           done
 
