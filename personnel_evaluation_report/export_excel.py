@@ -22,7 +22,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
 from openpyxl.drawing.xdr import XDRPositiveSize2D
-from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.utils.cell import range_boundaries
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils.exceptions import InvalidFileException
@@ -83,10 +83,6 @@ def apply_styles(ws: Worksheet, report: Report, font_name: str) -> None:
 # ── Column widths fitted to content ─────────────────────────────────────
 FIT_PADDING_PX = 12          # breathing room beyond the measured text ("content + 10–15")
 FIT_MAX_ITEM_PX = 300        # long wrapped text (histories, descriptions) wraps instead of widening
-FIT_MIN_PX = 26
-# Empty entry cells still need writing room: minimum total width by input type (pixels).
-ENTRY_MIN_PX = {"number": 48, "count": 40, "date": 80, "check": 28, "text": 130, "textarea": 150}
-SHORT_TEXT_FIELDS = re.compile(r"^hist_\d_rank$")   # one-word answers (e.g. «دوم»)
 SYMBOL_PX = 30
 FIXED_COLUMNS = {"A", "T", "Y", "Z", "AA", "AB", "AC"}   # margins/gaps and the photo section
 _font_cache: dict[tuple[str, bool, int], object] = {}
@@ -121,18 +117,20 @@ def _text_px(text: str, family: str, bold: bool, size_pt: float) -> float:
 
 
 def fit_columns(ws: Worksheet, font_name: str) -> None:
-    """Set each table column to its content width plus a little padding.
+    """Widen a column only when a report's data needs more room than the template width.
 
-    Text and values are measured with the report font; empty entry cells reserve a minimum writing
-    width for their type (score, date, description…), so columns are neither padded for nothing nor
-    cramped. Wide titles and banners never drive widths; margins and the photo section are fixed.
+    The template widths are the user's tuned layout: they fit every fixed label and leave writing
+    room in entry columns. Only report data (values that differ per employee) is measured, with the
+    report font plus a little padding; columns never shrink below the template. Margins and the
+    photo section are fixed.
     """
     merged = {str(r).split(":")[0]: r for r in ws.merged_cells.ranges}
+    data_cells = set(_template_map().values())     # fixed labels are already fitted by the template
     single: dict[str, float] = {}
     spans: list[tuple[list[str], float]] = []
     for row in ws.iter_rows():
         for c in row:
-            if c.value in (None, "") or not hasattr(c, "column_letter"):
+            if c.value in (None, "") or not hasattr(c, "column_letter") or c.coordinate not in data_cells:
                 continue
             rng = merged.get(c.coordinate)
             if c.font and c.font.name == fonts.SYMBOL_FONT:      # ☐ ☑ ★ … : fixed small room
@@ -151,22 +149,8 @@ def fit_columns(ws: Worksheet, font_name: str) -> None:
                 single[cols[0]] = max(single.get(cols[0], 0), need)
             else:
                 spans.append((cols, need))
-    # Empty entry cells: reserve writing room.
-    for fid, addr in _template_map().items():
-        f = FIELDS.get(fid)
-        if f is None or ws[addr].value not in (None, ""):
-            continue
-        rng = merged.get(addr)
-        cols = ([get_column_letter(i) for i in range(rng.min_col, rng.max_col + 1)] if rng else [ws[addr].column_letter])
-        if any(col in FIXED_COLUMNS for col in cols):
-            continue
-        need = 60 if SHORT_TEXT_FIELDS.match(fid) else ENTRY_MIN_PX.get(f.input, 60)
-        if len(cols) == 1:
-            single[cols[0]] = max(single.get(cols[0], 0), need)
-        else:
-            spans.append((cols, need))
     all_cols = {col for col in single} | {col for cols, _ in spans for col in cols}
-    width_px = {col: max(single.get(col, 0), FIT_MIN_PX) for col in all_cols}
+    width_px = {col: max(single.get(col, 0), _col_px(ws, column_index_from_string(col))) for col in all_cols}
     for cols, need in sorted(spans, key=lambda x: len(x[0])):
         have = sum(width_px[c] for c in cols)
         if need > have:
@@ -174,7 +158,9 @@ def fit_columns(ws: Worksheet, font_name: str) -> None:
             for col in cols:
                 width_px[col] += extra
     for col, px in width_px.items():
-        ws.column_dimensions[col].width = round(max(px - 5, 0) / 7 * 2) / 2
+        template_px = _col_px(ws, column_index_from_string(col))
+        if px > template_px + 0.5:
+            ws.column_dimensions[col].width = round(max(px - 5, 0) / 7 * 2) / 2
 
 
 def _image_boxes() -> dict[str, str]:

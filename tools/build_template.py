@@ -106,15 +106,15 @@ def build() -> None:
     ws.sheet_view.rightToLeft = True
     ws.sheet_view.showGridLines = False
 
-    widths = {"I": 13, "J": 11}
-    for col in "BCDEFGHIJKLMNOPQRSUVWX":
-        ws.column_dimensions[col].width = widths.get(col, 10)
-    for col in ("Z", "AA", "AB"):            # photo section (leftmost on the RTL sheet)
-        ws.column_dimensions[col].width = 10
-    ws.column_dimensions["A"].width = 2
-    ws.column_dimensions["T"].width = 2
-    ws.column_dimensions["Y"].width = 2       # gap between «اطلاعات پرسنلی» and the photo section
-    ws.column_dimensions["AC"].width = 2
+    # Column widths as tuned by the user in Excel (2026-10-18). Exports start from these and only
+    # widen a column when a report's text needs more room (see export_excel.fit_columns).
+    widths = {
+        "A": 2, "B": 5.5, "C": 7, "D": 8, "E": 7, "F": 10, "G": 8.5, "H": 13, "I": 10.83, "J": 13,
+        "K": 7, "L": 6.5, "M": 13, "N": 10, "O": 11.5, "P": 6.5, "Q": 13, "R": 13, "S": 3, "T": 10.83,
+        "U": 10.5, "V": 13, "W": 3.5, "X": 6, "Y": 2, "Z": 10, "AA": 13, "AB": 13, "AC": 2,
+    }
+    for col, w in widths.items():
+        ws.column_dimensions[col].width = w
     for r in range(1, 50):
         ws.row_dimensions[r].height = 30 if r <= 21 else 26
     ws.row_dimensions[20].height = 14         # gap row above the «عملکردوتوانمندی کارکنان» banner
@@ -130,15 +130,15 @@ def build() -> None:
     personal_rows = [6, 8, 10, 12, 14, 16, 18]
     individual = [
         ("full_name", "نام ونام خانوادگی"),
-        ("national_id", "کدملی:"),
+        ("national_id", "کدملی"),
         ("personnel_no", "کدپرسنلی"),
-        ("birth_date", "تاریخ تولد:"),
+        ("birth_date", "تاریخ تولد"),
         ("degree", "مدرک تحصیلی"),
         ("field_of_study", "رشته تحصیلی"),
         ("mobile", "شماره تماس:"),
     ]
     for r, (fid, label) in zip(personal_rows, individual):
-        cell(ws, f"B{r}:D{r+1}", label, bold=True, h="right")
+        cell(ws, f"B{r}:D{r+1}", label, bold=True)
         cell(ws, f"E{r}:H{r+1}", None, field=fid)
 
     # Marital status: two boxes side by side, tick under the matching one.
