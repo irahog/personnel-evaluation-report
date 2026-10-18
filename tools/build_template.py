@@ -135,7 +135,7 @@ def build() -> None:
         ("birth_date", "تاریخ تولد"),
         ("degree", "مدرک تحصیلی"),
         ("field_of_study", "رشته تحصیلی"),
-        ("mobile", "شماره تماس:"),
+        ("mobile", "شماره تماس"),
     ]
     for r, (fid, label) in zip(personal_rows, individual):
         cell(ws, f"B{r}:D{r+1}", label, bold=True)
