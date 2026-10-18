@@ -85,7 +85,8 @@ jobs:
           ln -s /Applications "$stage/Applications"
           cp "docs/fa/راهنمای کاربر.html" "$stage/"
           cp "README-macOS.md" "$stage/راهنمای نصب در مک.md"
-          dmg="dist/PersonnelEvaluationReport-0.1.0-macOS-${{ matrix.arch }}.dmg"
+          ver=$(python -c "import personnel_evaluation_report as p; print(p.VERSION)")
+          dmg="dist/PersonnelEvaluationReport-$ver-macOS-${{ matrix.arch }}.dmg"
           # hdiutil on hosted Mac runners intermittently fails with "Resource busy"; retry.
           for i in 1 2 3 4 5; do
             hdiutil create -volname "Personnel Evaluation Report" -srcfolder "$stage" -ov -format UDZO "$dmg" && break

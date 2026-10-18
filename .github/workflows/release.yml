@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag like v0.1.0 to build, test and publish installers to the PUBLIC
+# Push a tag like v0.2.0 to build, test and publish installers to the PUBLIC
 # repository irahog/personnel-evaluation-report-releases. Anyone can download
 # from there without a GitHub account; this (private) repository stays private.
 #

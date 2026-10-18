@@ -167,8 +167,8 @@ published to the **public** repository
 [irahog/personnel-evaluation-report-releases](https://github.com/irahog/personnel-evaluation-report-releases),
 which contains only the download page and the release files, never the source code.
 
-1. Bump `VERSION` in `personnel_evaluation_report/__init__.py`, `AppVersion` in `packaging/installer.iss`,
-   the version in `packaging/version_info.txt`, and the `.dmg` name in `.github/workflows/macos.yml`.
+1. Bump `VERSION` in `personnel_evaluation_report/__init__.py`, `AppVersion` in `packaging/installer.iss` and
+   the version in `packaging/version_info.txt` (the `.dmg` name follows `VERSION` automatically).
 2. Commit, then tag and push, e.g. `git tag v0.2.0 && git push origin v0.2.0`.
 3. `.github/workflows/release.yml` checks that the tag matches the version, runs the full Windows and macOS
    builds and tests (the same reusable workflows as on every push), and publishes:
