@@ -178,7 +178,7 @@ def test_shared_workbook_with_drawings_is_refused(report, tmp_path):
     from openpyxl import Workbook
     Workbook().save(p)
     with zipfile.ZipFile(p, "a") as z:
-        z.writestr("xl/drawings/drawing1.xml", "<x/>")
+        z.writestr("xl/drawings/drawing1.xml", '<xdr:wsDr xmlns:xdr="x"><xdr:sp><xdr:nvSpPr/></xdr:sp></xdr:wsDr>')
     before = p.read_bytes()
     with pytest.raises(export_excel.ExportError, match="شکل"):
         export_excel.append_to_shared(str(p), report, "B Nazanin")

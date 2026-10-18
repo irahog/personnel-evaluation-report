@@ -13,7 +13,7 @@ from urllib.parse import quote
 from flask import (Flask, Response, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali
+from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo
 from .normalize import normalize_national_id, to_fa_digits
 from .paths import RESOURCES
 from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, Report, Static,
@@ -45,7 +45,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
                 static_folder=str(RESOURCES / "static"))
     app.secret_key = secrets.token_bytes(32)          # new every run: old cookies become invalid
     app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Strict",
-                      MAX_CONTENT_LENGTH=2 * 1024 * 1024)
+                      MAX_CONTENT_LENGTH=photo.MAX_UPLOAD_BYTES + 1024 * 1024)   # photo + form fields
     app.jinja_env.tests["instanceof"] = isinstance
     app.jinja_env.filters["font_slug"] = fonts.slug
     app.jinja_env.filters["font_class"] = lambda fam: "f-" + fonts.slug(fam)
@@ -114,6 +114,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             if len(matches) == 1:
                 fresh = new_report(wb, matches[0])
                 fresh.manual = old_report.manual
+                fresh.photo = old_report.photo
                 if not fresh.marital_from_source and not old_report.marital_from_source:
                     fresh.marital = old_report.marital
                 s.report = fresh
@@ -140,7 +141,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         resp.headers["X-Content-Type-Options"] = "nosniff"
         resp.headers["Referrer-Policy"] = "no-referrer"
         resp.headers["Content-Security-Policy"] = (
-            "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
+            "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data: blob:; "
             "font-src 'self'; form-action 'self'; frame-ancestors 'none'")
         return resp
 
@@ -158,6 +159,10 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
     @app.errorhandler(400)
     def bad_request(_e):
         return render_template("error.html", message="درخواست نامعتبر بود. صفحه را دوباره باز کنید و دوباره تلاش کنید."), 400
+
+    @app.errorhandler(413)
+    def too_large(_e):
+        return render_template("error.html", message="حجم فایل ارسالی بیش از حد مجاز است. عکسی کوچک‌تر از ۱۵ مگابایت انتخاب کنید."), 413
 
     @app.errorhandler(403)
     def forbidden(_e):
@@ -246,11 +251,28 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         r = require_report(s)
         if request.method == "POST":
             block_if_stale(s, "edit_report")
-            if apply_form(r, request.form):
+            ok = apply_form(r, request.form)
+            if request.form.get("photo_remove"):
+                r.photo = None
+            upload = request.files.get("photo")
+            if upload and upload.filename:
+                try:
+                    r.photo = photo.process_upload(upload.read())
+                except photo.PhotoError as e:
+                    r.errors["photo"] = str(e)
+                    r.validated = ok = False
+            if ok:
                 return redirect(url_for("view_report"))
             flash("برخی مقادیر نادرست است. موارد مشخص‌شده را اصلاح کنید.", "error")
             return render_template("edit.html", r=r), 422
         return render_template("edit.html", r=r)
+
+    @app.get("/report/photo")
+    def report_photo():
+        r = require_report(g.s)
+        if not r.photo:
+            abort(404)
+        return Response(r.photo.jpeg, mimetype="image/jpeg")
 
     @app.get("/report/view")
     def view_report():

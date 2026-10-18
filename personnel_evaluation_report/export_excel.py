@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import os
 import tempfile
 import zipfile
@@ -18,11 +19,16 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.drawing.image import Image as XLImage
+from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
+from openpyxl.drawing.xdr import XDRPositiveSize2D
+from openpyxl.utils import get_column_letter
+from openpyxl.utils.cell import range_boundaries
 from openpyxl.styles import Font
 from openpyxl.utils.exceptions import InvalidFileException
 from openpyxl.worksheet.worksheet import Worksheet
 
-from . import fonts
+from . import fonts, photo as photo_mod
 from .normalize import clean_text, normalize_national_id
 from .paths import TEMPLATE_MAP, TEMPLATE_XLSX
 from .report import FIELDS, MARITAL_MARRIED, MARITAL_SINGLE, Report
@@ -54,6 +60,48 @@ def _template_map() -> dict[str, str]:
     return json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))["fields"]
 
 
+def _image_boxes() -> dict[str, str]:
+    return json.loads(TEMPLATE_MAP.read_text(encoding="utf-8")).get("images", {})
+
+
+EMU_PER_PX = 9525
+
+
+def _col_px(ws: Worksheet, col: int) -> float:
+    w = ws.column_dimensions[get_column_letter(col)].width or 8.43
+    return w * 7 + 5                      # Excel's character-width → pixel rule (default font)
+
+
+def _row_px(ws: Worksheet, row: int) -> float:
+    h = ws.row_dimensions[row].height or 15
+    return h * 96 / 72                    # points → pixels
+
+
+def add_photo(ws: Worksheet, report: Report) -> None:
+    """Place the employee photo inside its merged box, fitted and centred — never stretched."""
+    box = _image_boxes().get("photo")
+    if not box or not report.photo:
+        return
+    min_col, min_row, max_col, max_row = range_boundaries(box)
+    box_w = sum(_col_px(ws, c) for c in range(min_col, max_col + 1))
+    box_h = sum(_row_px(ws, r) for r in range(min_row, max_row + 1))
+    x, y, w, h = photo_mod.fit(box_w, box_h, report.photo.width, report.photo.height, pad=6)
+    # Convert the in-box offset to (cell, offset-in-cell) as Excel's anchor requires.
+    col, off_x = min_col, x
+    while col < max_col and off_x >= _col_px(ws, col):
+        off_x -= _col_px(ws, col)
+        col += 1
+    row, off_y = min_row, y
+    while row < max_row and off_y >= _row_px(ws, row):
+        off_y -= _row_px(ws, row)
+        row += 1
+    img = XLImage(io.BytesIO(report.photo.jpeg))
+    img.anchor = OneCellAnchor(
+        _from=AnchorMarker(col=col - 1, colOff=int(off_x * EMU_PER_PX), row=row - 1, rowOff=int(off_y * EMU_PER_PX)),
+        ext=XDRPositiveSize2D(int(w * EMU_PER_PX), int(h * EMU_PER_PX)))
+    ws.add_image(img)
+
+
 def sheet_title(name: str) -> str:
     t = clean_text(name).translate(_BAD_SHEET_CHARS).strip(" '")
     return " ".join(t.split())[:31] or "کارمند"
@@ -73,6 +121,8 @@ def fill_sheet(ws: Worksheet, report: Report, font_name: str) -> None:
             ws[addr].value = report.number(fid)
         else:
             ws[addr].value = report.text(fid) or None
+    if report.photo:
+        ws[cells["photo"]].value = None     # placeholder text only shows when there is no photo
     # One font for the whole report, except symbol cells (☐ ★ …) that need a symbol font.
     for row in ws.iter_rows():
         for c in row:
@@ -125,6 +175,7 @@ def build_single_workbook(report: Report, font_name: str) -> bytes:
     ws = wb.active
     ws.title = sheet_title(report.employee_name)
     _copy_sheet(src, ws)
+    add_photo(ws, report)
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()
@@ -144,11 +195,21 @@ class SameEmployeeExists(ExportError):
         self.sheet = sheet
 
 
+_NON_PICTURE = re.compile(rb"<(?:\w+:)?(?:sp|cxnSp|grpSp|graphicFrame)[\s>]")
+
+
 def _has_drawings(path: Path) -> bool:
-    """Shapes, pictures, charts and form controls are lost when openpyxl re-saves a workbook."""
+    """True if the workbook has drawings that openpyxl would lose on save.
+
+    Pictures (such as employee photos added by this app) survive a re-save; shapes, charts,
+    grouped drawings and form controls do not.
+    """
     with zipfile.ZipFile(path) as z:
-        return any(n.startswith(("xl/drawings/", "xl/charts/", "xl/media/", "xl/ctrlProps/"))
-                   or n.endswith(".vml") for n in z.namelist())
+        names = z.namelist()
+        if any(n.startswith(("xl/charts/", "xl/ctrlProps/")) or n.endswith(".vml") for n in names):
+            return True
+        return any(_NON_PICTURE.search(z.read(n)) for n in names
+                   if n.startswith("xl/drawings/") and n.endswith(".xml"))
 
 
 def _existing_sheet_for(wb, report: Report) -> str | None:
@@ -208,6 +269,7 @@ def append_to_shared(path: str, report: Report, font_name: str, *, replace: bool
         title = _unique_title(wb, sheet_title(report.employee_name))
         ws = wb.create_sheet(title)
     _copy_sheet(_filled_template(report, font_name), ws)
+    add_photo(ws, report)
     wb.active = wb.sheetnames.index(title)
     for other in wb.worksheets:
         other.sheet_view.tabSelected = other.title == title

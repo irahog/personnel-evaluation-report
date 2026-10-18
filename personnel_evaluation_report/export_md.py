@@ -1,6 +1,8 @@
 """Markdown output, generated from the same Report + SECTIONS as every other output."""
 from __future__ import annotations
 
+import base64
+
 from .normalize import to_fa_digits
 from .report import FIELDS, MARITAL_LABELS, Banner, FieldsSection, Report, SECTIONS, Static, TableSection
 
@@ -23,7 +25,11 @@ def render(report: Report) -> str:
         if isinstance(sec, Banner):
             lines += [f"## {sec.title}", ""]
         elif isinstance(sec, FieldsSection):
-            lines += [f"### {sec.title}", "", "| عنوان | مقدار |", "|---|---|"]
+            lines += [f"### {sec.title}", ""]
+            if sec.photo and report.photo:
+                b64 = base64.b64encode(report.photo.jpeg).decode("ascii")
+                lines += [f"![عکس کارمند](data:image/jpeg;base64,{b64})", ""]
+            lines += ["| عنوان | مقدار |", "|---|---|"]
             for fid in sec.fields:
                 lines.append(f"| {_md(FIELDS[fid].label)} | {_md(field_value(report, fid))} |")
             lines.append("")

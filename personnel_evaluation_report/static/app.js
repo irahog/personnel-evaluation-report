@@ -12,6 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (f.dataset.busy) { const p = document.createElement("p"); p.className = "hint"; p.textContent = f.dataset.busy; f.append(p); }
     });
   });
+  // Photo: show the chosen picture immediately (it is uploaded with the form).
+  const photoInput = document.getElementById("photo-input");
+  if (photoInput) {
+    photoInput.addEventListener("change", () => {
+      const f = photoInput.files && photoInput.files[0];
+      const img = document.getElementById("photo-img");
+      const empty = document.getElementById("photo-empty");
+      if (!f || !img) return;
+      img.src = URL.createObjectURL(f);
+      img.hidden = false;
+      if (empty) empty.hidden = true;
+    });
+  }
   // Print.
   document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
   // Warn before leaving the form with unsaved edits (nothing is saved automatically).

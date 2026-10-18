@@ -74,6 +74,19 @@ td, th { overflow-wrap: break-word; white-space: pre-line; }
 .signature td.val { height: 4.5rem; vertical-align: top; }
 .signature th:first-child, .signature th:last-child { width: 25%; }
 
+/* employee photo box beside «اطلاعات فردی» (RTL: first item sits on the right) */
+.fields-body { display: flex; align-items: stretch; }
+.fields-body > table.kv { flex: 1; min-width: 0; }
+.photo-box { flex: 0 0 9.5rem; display: flex; flex-direction: column; gap: .35rem; align-items: center;
+  border: 1px solid var(--ink); border-inline-end: 0; padding: .5rem; background: #fff; }
+.photo-frame { width: 100%; aspect-ratio: 3 / 4; border: 1px dashed var(--line); background: #fafafd;
+  display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.photo-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.photo-empty { color: #9a9ab0; font-size: .9rem; }
+.photo-pick { font-size: .85rem; padding: .15rem .6rem; }
+.photo-remove { font-size: .85rem; }
+.photo-box .hint { font-size: .75rem; text-align: center; }
+
 /* edit form specifics */
 .report-form textarea, .report-form input:not([type=checkbox]):not([type=radio]) { width: 100%; }
 .report-form td.in-number, .report-form td.in-count { width: 6.5rem; }
@@ -114,6 +127,9 @@ table.fonts td.sample { font-size: 1.1rem; }
   .report-layout { row-gap: 2.5mm; }
   body { line-height: 1.4; }
   .signature td.val { height: 16mm; }
+  .photo-box { flex-basis: 30mm; padding: 2mm; }
+  .photo-frame { border-style: solid; }
+  .photo-empty { visibility: hidden; }
   .rsec, table, tr { break-inside: avoid; }
   thead { display: table-header-group; }
   h3 { break-after: avoid; }

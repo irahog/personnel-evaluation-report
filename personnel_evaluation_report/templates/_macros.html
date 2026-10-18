@@ -38,6 +38,22 @@
 {%- endif -%}
 {%- endmacro %}
 
+{# Employee photo: always fitted inside the frame without distortion (object-fit: contain). #}
+{% macro photo_box(r, mode) -%}
+<div class="photo-box">
+  <div class="photo-frame">
+    {%- if r.photo %}<img id="photo-img" src="{{ url_for('report_photo', v=r.photo.jpeg|length) }}" alt="عکس کارمند">
+    {%- else %}<img id="photo-img" alt="" hidden><span class="photo-empty" id="photo-empty">عکس کارمند</span>{% endif -%}
+  </div>
+  {%- if mode == 'edit' %}
+  <label class="button photo-pick">انتخاب عکس<input type="file" name="photo" id="photo-input" accept="image/jpeg,image/png,image/webp" hidden></label>
+  {%- if r.photo %}<label class="photo-remove"><input type="checkbox" name="photo_remove" value="1"> حذف عکس</label>{% endif %}
+  {%- if r.errors.get('photo') %}<span class="err">{{ r.errors['photo'] }}</span>{% endif %}
+  <span class="hint">JPG یا PNG، حداکثر ۱۵ مگابایت</span>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
 {% macro section(r, sec, mode) -%}
 {%- set cell = input if mode == 'edit' else value -%}
 {%- if sec is instanceof Banner -%}
@@ -51,8 +67,10 @@
     </table>
   </section>
 {%- elif sec is instanceof FieldsSection -%}
-  <section class="rsec fields">
+  <section class="rsec fields{{ ' has-photo' if sec.photo }}">
     <h3>{{ sec.title }}</h3>
+    <div class="fields-body">
+    {%- if sec.photo %}{{ photo_box(r, mode) }}{% endif %}
     <table class="kv">
       {%- for fid in sec.fields %}
       <tr class="{{ 'auto-row' if FIELDS[fid].kind == 'auto' }}"><th scope="row">{% if mode == 'edit' and FIELDS[fid].input not in ('marital',) and FIELDS[fid].kind == 'manual' %}<label for="{{ fid }}">{{ FIELDS[fid].label }}</label>{% else %}{{ FIELDS[fid].label }}{% endif %}
@@ -60,6 +78,7 @@
         <td>{{ cell(r, fid) }}</td></tr>
       {%- endfor %}
     </table>
+    </div>
   </section>
 {%- else -%}
   <section class="rsec table">

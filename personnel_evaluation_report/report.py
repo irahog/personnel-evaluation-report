@@ -18,6 +18,7 @@ from typing import Literal, Union
 
 from . import jalali
 from .normalize import clean_text, to_ascii_digits, to_fa_digits
+from .photo import Photo
 from .source import Employee, LoadedWorkbook
 
 Kind = Literal["auto", "manual"]
@@ -136,6 +137,7 @@ class FieldsSection:
     fields: tuple[str, ...]
     kind: str = "fields"
     layout: str = "kv"          # "kv": label/value rows; "row": labels as columns (signature block)
+    photo: bool = False         # show the employee photo box beside the table
 
 
 @dataclass(frozen=True)
@@ -160,7 +162,7 @@ def _fa(n: int) -> str:
 SECTIONS: tuple[Union[FieldsSection, TableSection, Banner], ...] = (
     FieldsSection("اطلاعات فردی", (
         "full_name", "national_id", "personnel_no", "birth_date", "degree",
-        "field_of_study", "mobile", "marital", "children_daughters", "children_sons")),
+        "field_of_study", "mobile", "marital", "children_daughters", "children_sons"), photo=True),
     FieldsSection("اطلاعات پرسنلی", (
         "employment_type", "post_title", "work_location", "start_date", "service_history",
         "training_history", "eval_punishments", "eval_rewards", "previous_posts", "post_suspension")),
@@ -221,6 +223,7 @@ class Report:
     manual: dict[str, str] = field(default_factory=dict)   # cleaned user input
     errors: dict[str, str] = field(default_factory=dict)   # field id → Persian message
     validated: bool = False
+    photo: Photo | None = None                              # employee photo (memory only)
 
     # values used by every output
     def text(self, fid: str) -> str:

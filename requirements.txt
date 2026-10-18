@@ -2,6 +2,7 @@
 flask==3.1.3
 waitress==3.0.2
 openpyxl==3.1.5
+pillow==12.3.0      # employee photo: validation, EXIF rotation, resize; openpyxl images
 # transitive (pinned for reproducible builds)
 werkzeug==3.1.9
 jinja2==3.1.6
