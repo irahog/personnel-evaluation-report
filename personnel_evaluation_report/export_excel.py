@@ -24,7 +24,7 @@ from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
 from openpyxl.drawing.xdr import XDRPositiveSize2D
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.cell import range_boundaries
-from openpyxl.styles import Font
+from openpyxl.styles import Font, PatternFill
 from openpyxl.utils.exceptions import InvalidFileException
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -58,6 +58,26 @@ def decide_font(chosen: str, fallback: str) -> FontDecision:
 
 def _template_map() -> dict[str, str]:
     return json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))["fields"]
+
+
+def _section_regions() -> dict[str, dict[str, list[str]]]:
+    return json.loads(TEMPLATE_MAP.read_text(encoding="utf-8")).get("sections", {})
+
+
+def apply_styles(ws: Worksheet, report: Report, font_name: str) -> None:
+    """Apply the report's per-table colours and text styles to the template regions."""
+    regions = _section_regions()
+    for key, parts in report.styles.items():
+        for part, ps in parts.items():
+            fill = PatternFill("solid", start_color=ps.bg[1:].upper(), end_color=ps.bg[1:].upper())
+            for rng in regions.get(key, {}).get(part, []):
+                for row in ws[rng] if ":" in rng else [[ws[rng]]]:
+                    for c in row:
+                        base = c.font.size or 12
+                        c.font = Font(name=font_name, size=round(base * ps.scale, 1), bold=ps.bold,
+                                      italic=ps.italic, underline="single" if ps.underline else None,
+                                      color=ps.fg[1:].upper())
+                        c.fill = fill
 
 
 def _image_boxes() -> dict[str, str]:
@@ -130,6 +150,7 @@ def fill_sheet(ws: Worksheet, report: Report, font_name: str) -> None:
                 f = copy(c.font)
                 c.font = Font(name=font_name, size=f.size, bold=f.bold, italic=f.italic,
                               color=f.color, underline=f.underline)
+    apply_styles(ws, report, font_name)
 
 
 def _copy_sheet(src: Worksheet, dst: Worksheet) -> None:

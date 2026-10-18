@@ -224,6 +224,7 @@ class Report:
     errors: dict[str, str] = field(default_factory=dict)   # field id → Persian message
     validated: bool = False
     photo: Photo | None = None                              # employee photo (memory only)
+    styles: dict = field(default_factory=dict)              # table appearance (see styles.py)
 
     # values used by every output
     def text(self, fid: str) -> str:

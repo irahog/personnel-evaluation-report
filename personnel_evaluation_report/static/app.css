@@ -87,6 +87,17 @@ td, th { overflow-wrap: break-word; white-space: pre-line; }
 .photo-remove { font-size: .85rem; }
 .photo-box .hint { font-size: .75rem; text-align: center; }
 
+/* per-report table appearance panel (edit form) */
+.style-panel { border: 1px solid var(--ink); border-top: 0; background: #f7f7fb; font-size: .85rem; }
+.style-panel > summary { cursor: pointer; padding: .15rem .5rem; color: var(--accent); }
+.style-grid { display: flex; flex-wrap: wrap; gap: .5rem; padding: .4rem .5rem; align-items: flex-start; }
+.style-grid fieldset { border: 1px solid #d4d4e2; border-radius: 4px; display: flex; flex-wrap: wrap; gap: .35rem .7rem;
+  align-items: center; padding: .2rem .5rem .4rem; margin: 0; }
+.style-grid legend { font-weight: 700; padding: 0 .3rem; }
+.style-grid input[type=color] { width: 2.2rem; height: 1.5rem; padding: 0; border: 1px solid var(--line); vertical-align: middle; }
+.style-grid select { padding: 0 .3rem; }
+.style-reset { align-self: center; }
+
 /* edit form specifics */
 .report-form textarea, .report-form input:not([type=checkbox]):not([type=radio]) { width: 100%; }
 .report-form td.in-number, .report-form td.in-count { width: 6.5rem; }

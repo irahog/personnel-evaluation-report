@@ -25,6 +25,36 @@ document.addEventListener("DOMContentLoaded", () => {
       if (empty) empty.hidden = true;
     });
   }
+  // Table appearance: live preview in the form (the server renders the same values for view/print/Excel).
+  const PART_TARGETS = { header: "h3, thead th, table.kv th", body: "tbody td, table.kv td, .note" };
+  function applyPart(section, fs) {
+    const v = (p) => fs.querySelector(`[data-prop="${p}"]`);
+    const scale = parseFloat(v("size").selectedOptions[0].dataset.scale);
+    section.querySelectorAll(PART_TARGETS[fs.dataset.part]).forEach((el) => {
+      if (el.closest(".style-panel")) return;
+      el.style.color = v("fg").value;
+      el.style.background = v("bg").value;
+      el.style.fontWeight = v("bold").checked ? "700" : "400";
+      el.style.fontStyle = v("italic").checked ? "italic" : "normal";
+      el.style.textDecoration = v("underline").checked ? "underline" : "none";
+      el.style.fontSize = scale === 1 ? "" : (el.tagName === "H3" ? `calc(1.05rem * ${scale})` : `${scale}em`);
+    });
+  }
+  document.querySelectorAll(".style-panel").forEach((panel) => {
+    const section = panel.closest("[data-sec]");
+    panel.querySelectorAll("fieldset").forEach((fs) => {
+      fs.addEventListener("input", () => applyPart(section, fs));
+      fs.addEventListener("change", () => applyPart(section, fs));
+    });
+    panel.querySelector(".style-reset").addEventListener("click", () => {
+      panel.querySelectorAll("[data-prop]").forEach((el) => {
+        if (el.type === "checkbox") el.checked = el.dataset.default === "1";
+        else el.value = el.dataset.default;
+      });
+      panel.querySelectorAll("fieldset").forEach((fs) => applyPart(section, fs));
+      panel.closest("form").dispatchEvent(new Event("input"));
+    });
+  });
   // Print.
   document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
   // Warn before leaving the form with unsaved edits (nothing is saved automatically).

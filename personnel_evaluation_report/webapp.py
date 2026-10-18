@@ -13,7 +13,7 @@ from urllib.parse import quote
 from flask import (Flask, Response, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo
+from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo, styles
 from .normalize import normalize_national_id, to_fa_digits
 from .paths import RESOURCES
 from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, Report, Static,
@@ -115,6 +115,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
                 fresh = new_report(wb, matches[0])
                 fresh.manual = old_report.manual
                 fresh.photo = old_report.photo
+                fresh.styles = old_report.styles
                 if not fresh.marital_from_source and not old_report.marital_from_source:
                     fresh.marital = old_report.marital
                 s.report = fresh
@@ -154,6 +155,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             "font_css": quote(state.settings.font),
             "SECTIONS": SECTIONS, "FIELDS": FIELDS, "Static": Static, "Banner": Banner,
             "FieldsSection": FieldsSection, "TableSection": TableSection, "MARITAL_LABELS": MARITAL_LABELS,
+            "ST": styles,
         }
 
     @app.errorhandler(400)
@@ -252,6 +254,9 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         if request.method == "POST":
             block_if_stale(s, "edit_report")
             ok = apply_form(r, request.form)
+            r.styles, style_errors = styles.parse_form(request.form)
+            for msg in style_errors:
+                flash(msg, "warning")
             if request.form.get("photo_remove"):
                 r.photo = None
             upload = request.files.get("photo")
@@ -273,6 +278,11 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         if not r.photo:
             abort(404)
         return Response(r.photo.jpeg, mimetype="image/jpeg")
+
+    @app.get("/report/style.css")
+    def report_style():
+        r = require_report(g.s)
+        return Response(styles.css(r.styles), mimetype="text/css")
 
     @app.get("/report/view")
     def view_report():

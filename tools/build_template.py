@@ -10,6 +10,7 @@ Run:  .venv/bin/python tools/build_template.py
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from openpyxl import Workbook
@@ -42,6 +43,34 @@ BOX = Border(left=thin, right=thin, top=thin, bottom=thin)
 
 field_map: dict[str, str] = {}
 image_boxes: dict[str, str] = {}   # picture id -> merged cell range
+# Styleable regions: section key -> {"header": [ranges], "body": [ranges]} (see app styles.py).
+# Cells with the official form's fixed colours (yellow box, girl/boy, warning/pledge, notes,
+# score cells) and symbol cells are deliberately excluded so their meaning never changes.
+section_regions: dict[str, dict[str, list[str]]] = {}
+_current = {"section": None}
+_title_rows: dict[str, int] = {}
+KV_SECTIONS = {"personal", "employment", "signature"}
+FIXED_FILLS = {C_YELLOW, C_GIRL, C_BOY, C_WARN, C_PLEDGE, C_PEACH, C_SCORE}
+
+
+def section(key: str | None) -> None:
+    _current["section"] = key
+
+
+def _record(rng: str, bold: bool, bg: str | None, font: str, field: str | None) -> None:
+    key = _current["section"]
+    if key is None or bg in FIXED_FILLS or font == SYMBOL_FONT or field == "photo":
+        return
+    if key == "top":   # personal (B–M) and personnel (N–X) info share rows 4–19
+        col = re.match(r"[A-Z]+", rng).group()
+        key = "personal" if col <= "M" and len(col) == 1 else "employment"
+    row = int(re.search(r"\d+", rng).group())
+    first_row = _title_rows.setdefault(key, row)
+    if key in KV_SECTIONS:          # label/value tables: labels are the header, like the web view
+        header = bold or bg in (C_HEAD, C_SUB, C_TITLE)
+    else:                            # grid tables: title bar + column-heading row only
+        header = row == first_row or (row == first_row + 1 and bg == C_SUB)
+    section_regions.setdefault(key, {"header": [], "body": []})["header" if header else "body"].append(rng)
 
 
 def fill(color: str) -> PatternFill:
@@ -64,6 +93,7 @@ def cell(ws: Worksheet, rng: str, value=None, *, bold=False, size=12, color="000
             c.border = BOX
             if bg:
                 c.fill = fill(bg)
+    _record(rng, bold, bg, font, field)
     if field:
         assert field not in field_map, field
         field_map[field] = first
@@ -88,6 +118,7 @@ def build() -> None:
     # ── 1. Title ─────────────────────────────────────────────────────────
     cell(ws, "B1:X2", "کارنامه پرسنلی", bold=True, size=18, bg=C_TITLE)
 
+    section('top')
     # ── 2. اطلاعات فردی (B–M, photo box B–D) / 3. اطلاعات پرسنلی (N–X) ─────
     cell(ws, "B4:M5", "اطلاعات فردی", bold=True, size=14, bg=C_HEAD)
     cell(ws, "N4:X5", "اطلاعات پرسنلی", bold=True, size=14, bg=C_HEAD)
@@ -146,9 +177,11 @@ def build() -> None:
     cell(ws, "U14:X14", "توقف پست:", bold=True, size=14, bg=C_YELLOW, h="right")
     cell(ws, "U15:X19", None, bg=C_YELLOW, h="right", v="top", field="post_suspension")
 
+    section(None)
     # ── 4. Banner ────────────────────────────────────────────────────────
     cell(ws, "B20:X21", "عملکردوتوانمندی کارکنان", bold=True, size=14, bg=C_HEAD)
 
+    section('competency')
     # ── 5. ارزیابی توانمندی وشایستگی (B–I) ────────────────────────────────
     cell(ws, "B23:I23", "ارزیابی توانمندی وشایستگی", bold=True, size=13, bg=C_HEAD)
     for rng, t in (("B24", "ردیف"), ("C24:E24", "شاخص"), ("F24", "نمره"), ("G24:I24", "شرح")):
@@ -168,6 +201,7 @@ def build() -> None:
     cell(ws, "F32:F33", None, bold=True, field="comp_total")
     cell(ws, "G32:I33", None, bg=C_HEAD)
 
+    section('discipline')
     # ── 6. کارنامه نظم وانضباط اداری (K–S) ───────────────────────────────
     cell(ws, "K23:S23", "کارنامه نظم وانضباط اداری", bold=True, size=13, bg=C_HEAD)
     for rng, t in (("K24", "ردیف"), ("L24:N24", "شاخص"), ("O24", "نمره"),
@@ -190,6 +224,7 @@ def build() -> None:
     cell(ws, "P31:S31", None, size=11, field="disc_7_warning")
     cell(ws, "P32:S33", None, size=11, field="disc_7_pledge")
 
+    section('recommendations')
     # ── 7. جمع بندی وپیشنهادات مدیریتی (U–X) ──────────────────────────────
     cell(ws, "U23:X23", "جمع بندی وپیشنهادات مدیریتی", bold=True, size=13,
          color="FF0000", bg=C_HEAD)
@@ -211,6 +246,7 @@ def build() -> None:
     cell(ws, "U31:X33", None, size=11, bg=C_PEACH, h="right", v="top",
          field="recommend_notes")
 
+    section('history')
     # ── 8. سوابق ارزیابی ۵ سال گذشته (B–I) ───────────────────────────────
     cell(ws, "B35:I35", "سوابق ارزیابی ۵ سال گذشته", bold=True, size=13, bg=C_HEAD)
     for rng, t in (("B36", "سال"), ("C36", "نمره کل"), ("D36", "رتبه"),
@@ -229,6 +265,7 @@ def build() -> None:
     cell(ws, "B42:D42", "میانگین ۵ ساله", bold=True, bg=C_SUB)
     cell(ws, "E42:I42", None, bold=True, field="hist_average")
 
+    section('satisfaction')
     # ── 9. رضایت سنجی (K–S) ──────────────────────────────────────────────
     cell(ws, "K35:S35", "رضایت سنجی", bold=True, size=13, bg=C_HEAD)
     for rng, t in (("K36", "ردیف"), ("L36:N36", "شاخص"), ("O36", "امتیاز"),
@@ -244,6 +281,7 @@ def build() -> None:
          "منبع ارزیابی:سامانه سامع/ دفترارتباطات مردمی/مراجعات حضوری/تقدیرهاوشکایات",
          bold=True, size=10, h="right")
 
+    section('final_summary')
     # ── 10. جمع بندی نهائی ارزیابی عملکرد (U–X) ───────────────────────────
     cell(ws, "U35:X35", "جمع بندی نهائی ارزیابی عملکرد", bold=True, size=13,
          color="FF0000", bg=C_HEAD)
@@ -256,6 +294,7 @@ def build() -> None:
         cell(ws, f"U{r}:W{r}", label, size=11)
         cell(ws, f"X{r}", None, bg=C_SCORE, field=f"final_{i}_score")
 
+    section('signature')
     # ── 11. نمره نهایی و امضا ────────────────────────────────────────────
     for r in range(44, 49):
         ws.row_dimensions[r].height = 26
@@ -266,6 +305,7 @@ def build() -> None:
     cell(ws, "U44:X44", "تاریخ", bold=True, bg=C_SUB)
     cell(ws, "U45:X48", None, field="evaluation_date")
 
+    section(None)
     # ── Print setup ──────────────────────────────────────────────────────
     ws.print_area = "A1:Y49"
     ws.page_setup.paperSize = ws.PAPERSIZE_A4
@@ -282,7 +322,7 @@ def build() -> None:
         out.mkdir(exist_ok=True)
         wb.save(out / "report_template.xlsx")
         (out / "report_template_map.json").write_text(
-            json.dumps({"sheet": SHEET, "fields": field_map, "images": image_boxes}, ensure_ascii=False, indent=2),
+            json.dumps({"sheet": SHEET, "fields": field_map, "images": image_boxes, "sections": section_regions}, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
     print(f"wrote report_template.xlsx ({len(field_map)} fillable cells)")
