@@ -39,6 +39,7 @@ jobs:
           python -c "import platform, tkinter; print(platform.machine(), 'Tk', tkinter.TkVersion)"
 
       - name: Automated tests (synthetic data only)
+        timeout-minutes: 10
         run: python -m pytest -q --junitxml=test-results.xml
 
       - name: Build Personnel Evaluation Report.app (PyInstaller)

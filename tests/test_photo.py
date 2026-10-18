@@ -50,9 +50,12 @@ def test_png_transparency_becomes_white():
     assert Image.open(io.BytesIO(p.jpeg)).getpixel((100, 100))[0] > 240
 
 
-@pytest.mark.parametrize("data,msg", [(b"", "انتخاب نشده"), (b"not an image", "معتبر"),
-                                      (b"x" * (16 * 1024 * 1024), "۱۵ مگابایت")])
-def test_bad_uploads(data, msg):
+# ASCII ids: test ids are printed to the console (Windows consoles may not handle Persian), and the
+# 16 MB payload is built inside the test so it never becomes part of a test id.
+@pytest.mark.parametrize("case,msg", [("empty", "انتخاب نشده"), ("not-image", "معتبر"), ("too-large", "۱۵ مگابایت")],
+                         ids=["empty", "not-image", "too-large"])
+def test_bad_uploads(case, msg):
+    data = {"empty": b"", "not-image": b"not an image", "too-large": b"x" * (16 * 1024 * 1024)}[case]
     with pytest.raises(PhotoError, match=msg):
         process_upload(data)
 
