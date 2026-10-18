@@ -80,6 +80,103 @@ def apply_styles(ws: Worksheet, report: Report, font_name: str) -> None:
                         c.fill = fill
 
 
+# ── Column widths fitted to content ─────────────────────────────────────
+FIT_PADDING_PX = 12          # breathing room beyond the measured text ("content + 10–15")
+FIT_MAX_ITEM_PX = 300        # long wrapped text (histories, descriptions) wraps instead of widening
+FIT_MIN_PX = 26
+# Empty entry cells still need writing room: minimum total width by input type (pixels).
+ENTRY_MIN_PX = {"number": 48, "count": 40, "date": 80, "check": 28, "text": 130, "textarea": 150}
+SHORT_TEXT_FIELDS = re.compile(r"^hist_\d_rank$")   # one-word answers (e.g. «دوم»)
+SYMBOL_PX = 30
+FIXED_COLUMNS = {"A", "T", "Y", "Z", "AA", "AB", "AC"}   # margins/gaps and the photo section
+_font_cache: dict[tuple[str, bool, int], object] = {}
+
+
+def _font_file(family: str, bold: bool):
+    info = fonts.FONTS.get(family)
+    name = (info.bold if bold else info.regular) if info else None
+    if name:
+        return fonts.FONTS_DIR / name
+    for d in fonts.font_dirs():                       # e.g. Times New Roman from the OS
+        for cand in (info.system_files if info else ()):
+            if (d / cand).exists():
+                return d / cand
+    return fonts.FONTS_DIR / ("BNaznnBd.ttf" if bold else "BNazanin.ttf")
+
+
+def _text_px(text: str, family: str, bold: bool, size_pt: float) -> float:
+    from PIL import ImageFont
+    px = max(1, round(size_pt * 96 / 72))
+    key = (family, bold, px)
+    if key not in _font_cache:
+        try:
+            _font_cache[key] = ImageFont.truetype(str(_font_file(family, bold)), px)
+        except OSError:
+            _font_cache[key] = None
+    f = _font_cache[key]
+    lines = str(text).split("\n")
+    if f is None:
+        return max(len(l) for l in lines) * px * 0.55
+    return max(f.getlength(l) for l in lines)
+
+
+def fit_columns(ws: Worksheet, font_name: str) -> None:
+    """Set each table column to its content width plus a little padding.
+
+    Text and values are measured with the report font; empty entry cells reserve a minimum writing
+    width for their type (score, date, description…), so columns are neither padded for nothing nor
+    cramped. Wide titles and banners never drive widths; margins and the photo section are fixed.
+    """
+    merged = {str(r).split(":")[0]: r for r in ws.merged_cells.ranges}
+    single: dict[str, float] = {}
+    spans: list[tuple[list[str], float]] = []
+    for row in ws.iter_rows():
+        for c in row:
+            if c.value in (None, "") or not hasattr(c, "column_letter"):
+                continue
+            rng = merged.get(c.coordinate)
+            if c.font and c.font.name == fonts.SYMBOL_FONT:      # ☐ ☑ ★ … : fixed small room
+                if rng is None and c.column_letter not in FIXED_COLUMNS:
+                    single[c.column_letter] = max(single.get(c.column_letter, 0), SYMBOL_PX)
+                continue
+            if rng is not None:
+                cols = [get_column_letter(i) for i in range(rng.min_col, rng.max_col + 1)]
+            else:
+                cols = [c.column_letter]
+            if len(cols) >= 6 or any(col in FIXED_COLUMNS for col in cols):
+                continue
+            need = min(_text_px(c.value, font_name, bool(c.font and c.font.bold), (c.font.size if c.font else 12) or 12)
+                       + FIT_PADDING_PX, FIT_MAX_ITEM_PX)
+            if len(cols) == 1:
+                single[cols[0]] = max(single.get(cols[0], 0), need)
+            else:
+                spans.append((cols, need))
+    # Empty entry cells: reserve writing room.
+    for fid, addr in _template_map().items():
+        f = FIELDS.get(fid)
+        if f is None or ws[addr].value not in (None, ""):
+            continue
+        rng = merged.get(addr)
+        cols = ([get_column_letter(i) for i in range(rng.min_col, rng.max_col + 1)] if rng else [ws[addr].column_letter])
+        if any(col in FIXED_COLUMNS for col in cols):
+            continue
+        need = 60 if SHORT_TEXT_FIELDS.match(fid) else ENTRY_MIN_PX.get(f.input, 60)
+        if len(cols) == 1:
+            single[cols[0]] = max(single.get(cols[0], 0), need)
+        else:
+            spans.append((cols, need))
+    all_cols = {col for col in single} | {col for cols, _ in spans for col in cols}
+    width_px = {col: max(single.get(col, 0), FIT_MIN_PX) for col in all_cols}
+    for cols, need in sorted(spans, key=lambda x: len(x[0])):
+        have = sum(width_px[c] for c in cols)
+        if need > have:
+            extra = (need - have) / len(cols)
+            for col in cols:
+                width_px[col] += extra
+    for col, px in width_px.items():
+        ws.column_dimensions[col].width = round(max(px - 5, 0) / 7 * 2) / 2
+
+
 def _image_boxes() -> dict[str, str]:
     return json.loads(TEMPLATE_MAP.read_text(encoding="utf-8")).get("images", {})
 
@@ -151,6 +248,7 @@ def fill_sheet(ws: Worksheet, report: Report, font_name: str) -> None:
                 c.font = Font(name=font_name, size=f.size, bold=f.bold, italic=f.italic,
                               color=f.color, underline=f.underline)
     apply_styles(ws, report, font_name)
+    fit_columns(ws, font_name)
 
 
 def _copy_sheet(src: Worksheet, dst: Worksheet) -> None:

@@ -51,10 +51,13 @@ dd.path { font-size: .85rem; }
 details.empty { margin: .5rem 0; color: var(--muted); }
 
 /* ── report (shared by the edit form and the view) ───────────────────── */
-.report-layout { display: grid; grid-template-columns: repeat(6, 1fr); gap: .9rem 1rem; align-items: start; }
-.report-layout > .fields { grid-column: span 3; }
+/* 12-column grid. Top row (RTL): «اطلاعات فردی» | «اطلاعات پرسنلی» | photo section at the far left. */
+.report-layout { display: grid; grid-template-columns: repeat(12, 1fr); gap: .9rem 1rem; align-items: start; }
+.report-layout > .fields { grid-column: span 5; }
+.report-layout > .photo-sec { grid-column: span 2; }
 .report-layout > .banner, .report-layout > .fields:last-child { grid-column: 1 / -1; }
-.report-layout > .table { grid-column: span 3; }
+.report-layout > .banner { margin-top: .9rem; }   /* separated from the tables above */
+.report-layout > .table { grid-column: span 6; }
 .rsec h3 { margin: 0; background: var(--head); border: 1px solid var(--ink); border-bottom: 0; text-align: center;
   font-size: 1.05rem; padding: .15rem .5rem; }
 .banner { margin: .5rem 0 0; background: var(--head); border: 1px solid var(--ink); text-align: center; font-size: 1.15rem; padding: .25rem; }
@@ -77,8 +80,8 @@ td, th { overflow-wrap: break-word; white-space: pre-line; }
 /* employee photo box beside «اطلاعات فردی» (RTL: first item sits on the right) */
 .fields-body { display: flex; align-items: stretch; }
 .fields-body > table.kv { flex: 1; min-width: 0; }
-.photo-box { flex: 0 0 9.5rem; display: flex; flex-direction: column; gap: .35rem; align-items: center;
-  border: 1px solid var(--ink); border-inline-end: 0; padding: .5rem; background: #fff; }
+.photo-box { display: flex; flex-direction: column; gap: .35rem; align-items: center;
+  border: 1px solid var(--ink); border-top: 0; padding: .5rem; background: #fff; }
 .photo-frame { width: 100%; aspect-ratio: 3 / 4; border: 1px dashed var(--line); background: #fafafd;
   display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .photo-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -130,15 +133,16 @@ table.fonts td.sample { font-size: 1.1rem; }
   .no-print, .topbar { display: none !important; }
   main { max-width: none; padding: 0; }
   .report { border: 0; padding: 0; }
-  .report-layout { grid-template-columns: repeat(6, 1fr) !important; gap: 3mm 4mm; }
-  .report-layout > .fields { grid-column: span 3 !important; }
-  .report-layout > .table { grid-column: span 2 !important; }
+  .report-layout { grid-template-columns: repeat(12, 1fr) !important; gap: 3mm 4mm; }
+  .report-layout > .fields { grid-column: span 5 !important; }
+  .report-layout > .photo-sec { grid-column: span 2 !important; }
+  .report-layout > .table { grid-column: span 4 !important; }
   .report-layout > .banner, .report-layout > .fields:last-child { grid-column: 1 / -1 !important; }
   .banner { break-before: page; }
   .report-layout { row-gap: 2.5mm; }
   body { line-height: 1.4; }
   .signature td.val { height: 16mm; }
-  .photo-box { flex-basis: 30mm; padding: 2mm; }
+  .photo-box { padding: 2mm; }
   .photo-frame { border-style: solid; }
   .photo-empty { visibility: hidden; }
   .rsec, table, tr { break-inside: avoid; }

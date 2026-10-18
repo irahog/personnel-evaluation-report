@@ -63,7 +63,7 @@ def _record(rng: str, bold: bool, bg: str | None, font: str, field: str | None) 
         return
     if key == "top":   # personal (B–M) and personnel (N–X) info share rows 4–19
         col = re.match(r"[A-Z]+", rng).group()
-        key = "personal" if col <= "M" and len(col) == 1 else "employment"
+        key = "personal" if col <= "J" and len(col) == 1 else "employment"
     row = int(re.search(r"\d+", rng).group())
     first_row = _title_rows.setdefault(key, row)
     if key in KV_SECTIONS:          # label/value tables: labels are the header, like the web view
@@ -109,24 +109,23 @@ def build() -> None:
     widths = {"I": 13, "J": 11}
     for col in "BCDEFGHIJKLMNOPQRSUVWX":
         ws.column_dimensions[col].width = widths.get(col, 10)
+    for col in ("Z", "AA", "AB"):            # photo section (leftmost on the RTL sheet)
+        ws.column_dimensions[col].width = 10
     ws.column_dimensions["A"].width = 2
     ws.column_dimensions["T"].width = 2
-    ws.column_dimensions["Y"].width = 2
+    ws.column_dimensions["Y"].width = 2       # gap between «اطلاعات پرسنلی» and the photo section
+    ws.column_dimensions["AC"].width = 2
     for r in range(1, 50):
         ws.row_dimensions[r].height = 30 if r <= 21 else 26
+    ws.row_dimensions[20].height = 14         # gap row above the «عملکردوتوانمندی کارکنان» banner
 
     # ── 1. Title ─────────────────────────────────────────────────────────
-    cell(ws, "B1:X2", "کارنامه پرسنلی", bold=True, size=18, bg=C_TITLE)
+    cell(ws, "B1:AB2", "کارنامه پرسنلی", bold=True, size=18, bg=C_TITLE)
 
     section('top')
-    # ── 2. اطلاعات فردی (B–M, photo box B–D) / 3. اطلاعات پرسنلی (N–X) ─────
-    cell(ws, "B4:M5", "اطلاعات فردی", bold=True, size=14, bg=C_HEAD)
-    cell(ws, "N4:X5", "اطلاعات پرسنلی", bold=True, size=14, bg=C_HEAD)
-
-    # Employee photo box, right of the personal-info table (RTL: column B is the rightmost).
-    # The app places the picture inside it, fitted without distortion; the text is a placeholder.
-    cell(ws, "B6:D19", "عکس کارمند", size=11, color="9A9AB0", field="photo")
-    image_boxes["photo"] = "B6:D19"
+    # ── 2. اطلاعات فردی (B–J) / 3. اطلاعات پرسنلی (K–X) ─────────────────────
+    cell(ws, "B4:J5", "اطلاعات فردی", bold=True, size=14, bg=C_HEAD)
+    cell(ws, "K4:X5", "اطلاعات پرسنلی", bold=True, size=14, bg=C_HEAD)
 
     personal_rows = [6, 8, 10, 12, 14, 16, 18]
     individual = [
@@ -139,20 +138,20 @@ def build() -> None:
         ("mobile", "شماره تماس:"),
     ]
     for r, (fid, label) in zip(personal_rows, individual):
-        cell(ws, f"E{r}:G{r+1}", label, bold=True, h="right")
-        cell(ws, f"H{r}:K{r+1}", None, field=fid)
+        cell(ws, f"B{r}:D{r+1}", label, bold=True, h="right")
+        cell(ws, f"E{r}:H{r+1}", None, field=fid)
 
     # Marital status: two boxes side by side, tick under the matching one.
-    cell(ws, "L6:L7", "متأهل", bold=True)
-    cell(ws, "M6:M7", "مجرد", bold=True)
-    cell(ws, "L8:L9", "☐", size=16, field="marital_married_mark", font=SYMBOL_FONT)
-    cell(ws, "M8:M9", "☐", size=16, field="marital_single_mark", font=SYMBOL_FONT)
+    cell(ws, "I6:I7", "متأهل", bold=True)
+    cell(ws, "J6:J7", "مجرد", bold=True)
+    cell(ws, "I8:I9", "☐", size=16, field="marital_married_mark", font=SYMBOL_FONT)
+    cell(ws, "J8:J9", "☐", size=16, field="marital_single_mark", font=SYMBOL_FONT)
     # Children: daughter / son, entered manually.
-    cell(ws, "L10:M11", "تعدادفرزندان", bold=True)
-    cell(ws, "L12:L13", "دختر", bold=True, bg=C_GIRL)
-    cell(ws, "M12:M13", "پسر", bold=True, bg=C_BOY)
-    cell(ws, "L14:L19", None, field="children_daughters")
-    cell(ws, "M14:M19", None, field="children_sons")
+    cell(ws, "I10:J11", "تعدادفرزندان", bold=True)
+    cell(ws, "I12:I13", "دختر", bold=True, bg=C_GIRL)
+    cell(ws, "J12:J13", "پسر", bold=True, bg=C_BOY)
+    cell(ws, "I14:I19", None, field="children_daughters")
+    cell(ws, "J14:J19", None, field="children_sons")
 
     employment = [
         ("employment_type", "نوع استخدام"),
@@ -163,23 +162,29 @@ def build() -> None:
         ("training_history", "سوابق آموزشی"),
     ]
     for r, (fid, label) in zip(personal_rows, employment):
-        cell(ws, f"N{r}:P{r+1}", label, bold=True)
-        cell(ws, f"Q{r}:T{r+1}", None, field=fid)
-    cell(ws, "N18:P19", "سوابق ارزیابی", bold=True)
-    cell(ws, "Q18:R18", "تنبیهات", bold=True, size=11, bg=C_SUB)
-    cell(ws, "S18:T18", "تشویق ها", bold=True, size=11, bg=C_SUB)
-    cell(ws, "Q19:R19", None, field="eval_punishments")
-    cell(ws, "S19:T19", None, field="eval_rewards")
+        cell(ws, f"K{r}:M{r+1}", label, bold=True)
+        cell(ws, f"N{r}:R{r+1}", None, field=fid)
+    cell(ws, "K18:M19", "سوابق ارزیابی", bold=True)
+    cell(ws, "N18:O18", "تنبیهات", bold=True, size=11, bg=C_SUB)
+    cell(ws, "P18:R18", "تشویق ها", bold=True, size=11, bg=C_SUB)
+    cell(ws, "N19:O19", None, field="eval_punishments")
+    cell(ws, "P19:R19", None, field="eval_rewards")
 
     # Yellow box: previous posts / post suspension.
-    cell(ws, "U6:X6", "سمت های قبلی:", bold=True, size=14, bg=C_YELLOW, h="right")
-    cell(ws, "U7:X13", None, bg=C_YELLOW, h="right", v="top", field="previous_posts")
-    cell(ws, "U14:X14", "توقف پست:", bold=True, size=14, bg=C_YELLOW, h="right")
-    cell(ws, "U15:X19", None, bg=C_YELLOW, h="right", v="top", field="post_suspension")
+    cell(ws, "S6:X6", "سمت های قبلی:", bold=True, size=14, bg=C_YELLOW, h="right")
+    cell(ws, "S7:X13", None, bg=C_YELLOW, h="right", v="top", field="previous_posts")
+    cell(ws, "S14:X14", "توقف پست:", bold=True, size=14, bg=C_YELLOW, h="right")
+    cell(ws, "S15:X19", None, bg=C_YELLOW, h="right", v="top", field="post_suspension")
 
     section(None)
-    # ── 4. Banner ────────────────────────────────────────────────────────
-    cell(ws, "B20:X21", "عملکردوتوانمندی کارکنان", bold=True, size=14, bg=C_HEAD)
+    # Employee photo: its own section at the far left, outside «اطلاعات پرسنلی».
+    # The app places the picture inside the box, fitted without distortion; the text is a placeholder.
+    cell(ws, "Z4:AB5", "عکس کارمند", bold=True, size=14, bg=C_HEAD)
+    cell(ws, "Z6:AB19", "محل عکس", size=11, color="9A9AB0", field="photo")
+    image_boxes["photo"] = "Z6:AB19"
+
+    # ── 4. Banner (one empty row below the tables above it) ──────────────
+    cell(ws, "B21:X21", "عملکردوتوانمندی کارکنان", bold=True, size=14, bg=C_HEAD)
 
     section('competency')
     # ── 5. ارزیابی توانمندی وشایستگی (B–I) ────────────────────────────────
@@ -307,7 +312,7 @@ def build() -> None:
 
     section(None)
     # ── Print setup ──────────────────────────────────────────────────────
-    ws.print_area = "A1:Y49"
+    ws.print_area = "A1:AC49"
     ws.page_setup.paperSize = ws.PAPERSIZE_A4
     ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
     ws.page_setup.fitToWidth = 1
@@ -316,7 +321,7 @@ def build() -> None:
     ws.print_options.horizontalCentered = True
     ws.page_margins.left = ws.page_margins.right = 0.4
     ws.page_margins.top = ws.page_margins.bottom = 0.5
-    ws.row_breaks.append(Break(id=21))  # page 1: personal info, page 2: evaluation
+    ws.row_breaks.append(Break(id=20))  # page 1: personal info + photo, page 2: banner and evaluation
 
     for out in OUT_DIRS:
         out.mkdir(exist_ok=True)

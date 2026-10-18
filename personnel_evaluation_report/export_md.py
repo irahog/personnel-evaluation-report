@@ -4,7 +4,7 @@ from __future__ import annotations
 import base64
 
 from .normalize import to_fa_digits
-from .report import FIELDS, MARITAL_LABELS, Banner, FieldsSection, Report, SECTIONS, Static, TableSection
+from .report import FIELDS, MARITAL_LABELS, Banner, FieldsSection, PhotoSection, Report, SECTIONS, Static, TableSection
 
 
 def _md(text: str) -> str:
@@ -24,12 +24,12 @@ def render(report: Report) -> str:
     for sec in SECTIONS:
         if isinstance(sec, Banner):
             lines += [f"## {sec.title}", ""]
-        elif isinstance(sec, FieldsSection):
-            lines += [f"### {sec.title}", ""]
-            if sec.photo and report.photo:
+        elif isinstance(sec, PhotoSection):
+            if report.photo:
                 b64 = base64.b64encode(report.photo.jpeg).decode("ascii")
-                lines += [f"![عکس کارمند](data:image/jpeg;base64,{b64})", ""]
-            lines += ["| عنوان | مقدار |", "|---|---|"]
+                lines += [f"### {sec.title}", "", f"![عکس کارمند](data:image/jpeg;base64,{b64})", ""]
+        elif isinstance(sec, FieldsSection):
+            lines += [f"### {sec.title}", "", "| عنوان | مقدار |", "|---|---|"]
             for fid in sec.fields:
                 lines.append(f"| {_md(FIELDS[fid].label)} | {_md(field_value(report, fid))} |")
             lines.append("")

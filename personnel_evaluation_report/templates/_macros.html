@@ -82,6 +82,11 @@
 {%- set cell = input if mode == 'edit' else value -%}
 {%- if sec is instanceof Banner -%}
   <h2 class="banner">{{ sec.title }}</h2>
+{%- elif sec is instanceof PhotoSection -%}
+  <section class="rsec photo-sec">
+    <h3>{{ sec.title }}</h3>
+    {{ photo_box(r, mode) }}
+  </section>
 {%- elif sec is instanceof FieldsSection and sec.layout == 'row' -%}
   <section class="rsec fields signature" data-sec="{{ ST.SECTION_KEYS[sec.title] }}">
     <h3>{{ sec.title }}</h3>{% if mode == 'edit' %}{{ style_panel(r, ST.SECTION_KEYS[sec.title]) }}{% endif %}

@@ -85,7 +85,7 @@ def test_marital_from_source_cannot_be_overridden(report):
 def test_markdown(report):
     md = export_md.render(report)
     assert md.startswith("# کارنامه پرسنلی")
-    order = [s.title for s in SECTIONS]
+    order = [s.title for s in SECTIONS if s.kind != "photo"]   # photo heading only appears with a photo
     positions = [md.index(t) for t in order]
     assert positions == sorted(positions), "section order preserved"
     assert "| کدملی | ۰۰۰۰۰۰۰۰۰۱ |" in md
@@ -233,3 +233,28 @@ def test_install_fonts_route(client, tmp_path, monkeypatch):
     assert "نصب شد" in r.get_data(as_text=True)
     r = client.post("/settings/install-fonts", follow_redirects=True)
     assert "از قبل نصب" in r.get_data(as_text=True)
+
+
+def test_columns_fit_content(make_wb):
+    from openpyxl.utils.cell import range_boundaries
+    from personnel_evaluation_report.export_excel import _col_px, _text_px
+    short = load_source(str(make_wb([person(1)], name="s.xlsx")))
+    long_ = load_source(str(make_wb([person(1, **{"محل خدمت ـ اداره/بخش": "معاونت قضایی در امور شعب اجرای احکام و دفاتر استانی"})], name="l.xlsx")))
+    widths = []
+    for wb in (short, long_):
+        r = new_report(wb, wb.employees[0])
+        apply_form(r, {})
+        ws = load_workbook(io.BytesIO(export_excel.build_single_workbook(r, "B Nazanin"))).active
+        cells = json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))["fields"]
+        rng = [m for m in ws.merged_cells.ranges if str(m).startswith(cells["work_location"] + ":")][0]
+        lo, _, hi, _ = range_boundaries(str(rng))
+        span = sum(_col_px(ws, c) for c in range(lo, hi + 1))
+        text = ws[cells["work_location"]].value
+        need = _text_px(text, "B Nazanin", False, 12)
+        assert span >= min(need + 10, 290), (need, span)   # content fits (columns are shared with tables below)
+        widths.append(span)
+        # an empty description column keeps room to write
+        dr = [m for m in ws.merged_cells.ranges if str(m).startswith(cells["comp_1_desc"] + ":")][0]
+        lo2, _, hi2, _ = range_boundaries(str(dr))
+        assert sum(_col_px(ws, c) for c in range(lo2, hi2 + 1)) >= 130
+    assert widths[1] >= widths[0]

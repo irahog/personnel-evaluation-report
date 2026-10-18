@@ -25,7 +25,7 @@ def form_for(key, part, **kw):
 
 
 def test_every_table_section_has_a_key():
-    titled = [s.title for s in SECTIONS if hasattr(s, "title") and s.kind != "banner"]
+    titled = [s.title for s in SECTIONS if s.kind not in ("banner", "photo")]
     assert set(titled) == set(styles.SECTION_KEYS)
     regions = json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))["sections"]
     assert set(regions) == set(styles.SECTION_KEYS.values())
@@ -78,8 +78,8 @@ def test_excel_applies_styles_but_keeps_fixed_colours(make_wb):
     body = ws["L25"]                                   # «ورود وخروج به موقع»
     assert body.fill.fgColor.rgb.endswith("E0F0FF") and body.font.size == 14.4
     assert ws["O31"].fill.fgColor.rgb.endswith("FFC000")     # «تذکر» keeps its official colour
-    assert ws["U7"].fill.fgColor.rgb.endswith("FFFF00")      # yellow box untouched by employment body bg
-    assert ws["Q6"].fill.fgColor.rgb.endswith("00FF00")
+    assert ws["S7"].fill.fgColor.rgb.endswith("FFFF00")      # yellow box untouched by employment body bg
+    assert ws["N6"].fill.fgColor.rgb.endswith("00FF00")
     assert ws["B25"].fill.fgColor.rgb in ("00000000", None) or not ws["B25"].fill.fgColor.rgb.endswith("E0F0FF")
 
 

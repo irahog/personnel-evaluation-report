@@ -16,7 +16,7 @@ from flask import (Flask, Response, abort, flash, g, redirect, render_template, 
 from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo, styles
 from .normalize import normalize_national_id, to_fa_digits
 from .paths import RESOURCES
-from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, Report, Static,
+from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, PhotoSection, Report, Static,
                      TableSection, apply_form, new_report)
 from .settings import Settings
 from .source import LoadedWorkbook, NeedsSheetChoice, SourceError, load_source
@@ -154,7 +154,8 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             "title": APP_TITLE_FA, "version": VERSION, "stale": stale_message(s),
             "font_css": quote(state.settings.font),
             "SECTIONS": SECTIONS, "FIELDS": FIELDS, "Static": Static, "Banner": Banner,
-            "FieldsSection": FieldsSection, "TableSection": TableSection, "MARITAL_LABELS": MARITAL_LABELS,
+            "FieldsSection": FieldsSection, "TableSection": TableSection, "PhotoSection": PhotoSection,
+            "MARITAL_LABELS": MARITAL_LABELS,
             "ST": styles,
         }
 

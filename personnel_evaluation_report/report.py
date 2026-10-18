@@ -150,6 +150,13 @@ class TableSection:
 
 
 @dataclass(frozen=True)
+class PhotoSection:
+    """Employee photo: its own section, at the far left of the top row (outside the tables)."""
+    title: str = "عکس کارمند"
+    kind: str = "photo"
+
+
+@dataclass(frozen=True)
 class Banner:
     title: str
     kind: str = "banner"
@@ -159,13 +166,14 @@ def _fa(n: int) -> str:
     return to_fa_digits(str(n))
 
 
-SECTIONS: tuple[Union[FieldsSection, TableSection, Banner], ...] = (
+SECTIONS: tuple[Union[FieldsSection, TableSection, PhotoSection, Banner], ...] = (
     FieldsSection("اطلاعات فردی", (
         "full_name", "national_id", "personnel_no", "birth_date", "degree",
-        "field_of_study", "mobile", "marital", "children_daughters", "children_sons"), photo=True),
+        "field_of_study", "mobile", "marital", "children_daughters", "children_sons")),
     FieldsSection("اطلاعات پرسنلی", (
         "employment_type", "post_title", "work_location", "start_date", "service_history",
         "training_history", "eval_punishments", "eval_rewards", "previous_posts", "post_suspension")),
+    PhotoSection(),
     Banner("عملکردوتوانمندی کارکنان"),
     TableSection(
         "ارزیابی توانمندی وشایستگی", ("ردیف", "شاخص", "نمره", "شرح"),

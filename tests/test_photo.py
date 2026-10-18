@@ -85,9 +85,9 @@ def test_excel_photo_inside_box_without_distortion(report_with_photo):
     ext = img.anchor.ext
     assert abs(ext.width / ext.height - 0.75) < 0.01            # aspect ratio preserved
     m = json.loads(TEMPLATE_MAP.read_text(encoding="utf-8"))
-    assert m["images"]["photo"] == "B6:D19"
+    assert m["images"]["photo"] == "Z6:AB19"                     # own section, far left of the sheet
     frm = img.anchor._from
-    assert 1 <= frm.col <= 3 and 5 <= frm.row <= 18              # anchored inside the box
+    assert 25 <= frm.col <= 27 and 5 <= frm.row <= 18            # anchored inside the box
     assert ws[m["fields"]["photo"]].value is None                # placeholder removed
 
 
@@ -96,7 +96,7 @@ def test_excel_without_photo_keeps_placeholder(make_wb):
     r = new_report(wb, wb.employees[0])
     apply_form(r, {})
     ws = load_workbook(io.BytesIO(export_excel.build_single_workbook(r, "B Nazanin"))).active
-    assert not ws._images and ws["B6"].value == "عکس کارمند"
+    assert not ws._images and ws["Z6"].value == "محل عکس" and ws["Z4"].value == "عکس کارمند"
 
 
 def test_shared_workbook_keeps_earlier_photos(report_with_photo, make_wb, tmp_path):
@@ -113,6 +113,7 @@ def test_shared_workbook_keeps_earlier_photos(report_with_photo, make_wb, tmp_pa
 
 def test_markdown_embeds_photo(report_with_photo):
     md = export_md.render(report_with_photo)
+    assert "### عکس کارمند" in md
     b64 = base64.b64encode(report_with_photo.photo.jpeg).decode()
     assert f"![عکس کارمند](data:image/jpeg;base64,{b64})" in md
 
