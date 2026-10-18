@@ -329,6 +329,8 @@ def test_server_is_created_on_loopback(monkeypatch, tmp_path):
 def test_no_external_resources_offline():
     """Pages must work offline: no CDN, web font, analytics or other external URL."""
     import re
-    for p in list((ROOT / "personnel_evaluation_report/templates").glob("*.html")) + list((ROOT / "personnel_evaluation_report/static").glob("*.*")):
+    static = [p for p in (ROOT / "personnel_evaluation_report/static").glob("*.*") if p.suffix in (".css", ".js", ".svg")]
+    for p in list((ROOT / "personnel_evaluation_report/templates").glob("*.html")) + static:
         text = p.read_text(encoding="utf-8")
+        text = re.sub(r'xmlns="http://www\.w3\.org/2000/svg"', "", text)   # SVG namespace id, not a request
         assert not re.search(r"(https?:)?//[a-z0-9.-]+\.[a-z]{2,}", text, re.I), p.name

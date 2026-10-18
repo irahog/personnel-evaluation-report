@@ -35,6 +35,7 @@ exe = EXE(
     console=False,          # no terminal window for the user
     upx=False,
     version=str(ROOT / "packaging" / "version_info.txt") if IS_WIN else None,
+    icon=str(ROOT / "packaging" / "app.ico") if IS_WIN else None,
 )
 coll = COLLECT(exe, a.binaries, a.datas, name="PersonnelEvaluationReport", upx=False)
 
@@ -43,6 +44,7 @@ if IS_MAC:
         coll,
         name="Personnel Evaluation Report.app",
         bundle_identifier="local.personnel-evaluation-report",
+        icon=str(ROOT / "packaging" / "app.icns"),
         version=VERSION,
         info_plist={
             "CFBundleDisplayName": "Personnel Evaluation Report",

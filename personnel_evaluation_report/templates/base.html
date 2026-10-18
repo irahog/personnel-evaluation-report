@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{{ title }}{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 {% block head %}{% endblock %}
@@ -11,7 +13,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
 <header class="topbar no-print">
-  <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark" aria-hidden="true">ک</span>{{ title }}</a>
+  <a class="brand" href="{{ url_for('index') }}"><img class="brand-mark" src="{{ url_for('static', filename='logo.svg') }}" alt="" aria-hidden="true">{{ title }}</a>
   <nav aria-label="منوی اصلی">
     {% set ep = request.endpoint %}
     <a href="{{ url_for('index') }}" class="{{ 'active' if ep == 'index' }}">صفحهٔ اصلی</a>

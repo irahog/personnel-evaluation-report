@@ -21,8 +21,7 @@ bdi { unicode-bidi: isolate; }
   box-shadow: var(--shadow); }
 .brand { display: inline-flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.2rem;
   color: var(--ink); text-decoration: none; }
-.brand-mark { display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 8px;
-  background: var(--accent); color: #fff; font-size: 1.05rem; }
+.brand-mark { display: block; width: 2.2rem; height: 2.2rem; }
 .topbar nav { display: flex; gap: .25rem; align-items: center; flex-wrap: wrap; }
 .topbar nav a, .topbar nav .link { color: var(--ink); text-decoration: none; padding: .3rem .8rem; border-radius: 8px; }
 .topbar nav a:hover { background: var(--accent-50); }
