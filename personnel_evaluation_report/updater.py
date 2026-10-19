@@ -195,7 +195,7 @@ def prepare_install(file: Path) -> list[str]:
     """Validate and return the command that finishes the update after this process exits."""
     if sys.platform == "win32":
         # /SILENT shows a progress window only; the installer restarts the app afterwards.
-        return [str(file), "/SP-", "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER"]
+        return [str(file), "/SP-", "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/RESTARTAPP"]
     if sys.platform == "darwin":
         bundle = _mac_bundle()
         if not os.access(bundle.parent, os.W_OK):

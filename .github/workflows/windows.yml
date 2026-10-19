@@ -78,6 +78,7 @@ jobs:
           Get-ChildItem dist\*.exe
 
       - name: Install for the current user (no admin), then self-test the installed app
+        timeout-minutes: 10
         run: |
           $setup = (Get-ChildItem dist\PersonnelEvaluationReport-Setup-*.exe).FullName
           $dir = "$env:LOCALAPPDATA\Programs\PersonnelEvaluationReport"
@@ -102,12 +103,15 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "self-test in a Persian path failed" }
 
       - name: In-app update path (silent reinstall restarts the app)
+        timeout-minutes: 5
         run: |
           # The app's updater runs the installer with these flags after it quits; the installer
           # must replace the files and reopen the app on its own.
           $setup = (Get-ChildItem dist\PersonnelEvaluationReport-Setup-*.exe).FullName
           Remove-Item "$env:LOCALAPPDATA\PersonnelEvaluationReport\instance.json" -ErrorAction SilentlyContinue
-          $p = Start-Process -FilePath $setup -ArgumentList "/SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER" -Wait -PassThru
+          # WaitForExit waits for the installer only (Start-Process -Wait would also wait for the app it reopens).
+          $p = Start-Process -FilePath $setup -ArgumentList "/SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER /RESTARTAPP" -PassThru
+          $p.WaitForExit()
           if ($p.ExitCode -ne 0) { throw "silent update install failed ($($p.ExitCode))" }
           $port = $null
           for ($i = 0; $i -lt 60 -and -not $port; $i++) {

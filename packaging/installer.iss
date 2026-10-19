@@ -55,5 +55,12 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\PersonnelEvaluationReport.exe
 
 [Run]
 Filename: "{app}\PersonnelEvaluationReport.exe"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
-; In-app update (silent install): reopen the app afterwards.
-Filename: "{app}\PersonnelEvaluationReport.exe"; Flags: nowait skipifnotsilent
+; In-app update only (the app passes /RESTARTAPP): reopen the app after the silent install.
+; Plain silent installs (e.g. IT deployment) do not start the app.
+Filename: "{app}\PersonnelEvaluationReport.exe"; Flags: nowait skipifnotsilent; Check: RestartRequested
+
+[Code]
+function RestartRequested: Boolean;
+begin
+  Result := Pos('/RESTARTAPP', UpperCase(GetCmdTail)) > 0;
+end;
