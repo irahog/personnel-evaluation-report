@@ -100,3 +100,18 @@ def test_web_flow_and_reset_on_new_employee(client, make_wb):
 
 def test_style_css_requires_report(client):
     assert client.get("/report/style.css").status_code == 302
+
+
+def test_header_style_skips_label_column_in_personal_tables(make_wb):
+    """Changing «سربرگ» of «اطلاعات فردی/پرسنلی» recolours only the title bar, not the label column."""
+    st, _ = styles.parse_form({**form_for("personal", "header", bg="#ff0000"),
+                               **form_for("employment", "header", bg="#00ff00")})
+    css = styles.css(st)
+    assert "table.kv th" not in css and 'section.rsec[data-sec="personal"] h3' in css
+    r = make_report(make_wb)
+    r.styles = st
+    ws = load_workbook(io.BytesIO(export_excel.build_single_workbook(r, "B Nazanin"))).active
+    assert ws["B4"].fill.fgColor.rgb.endswith("FF0000")                  # title bar
+    assert not ws["B6"].fill.fgColor.rgb.endswith("FF0000")              # «نام ونام خانوادگی» label
+    assert ws["K4"].fill.fgColor.rgb.endswith("00FF00")
+    assert not ws["K6"].fill.fgColor.rgb.endswith("00FF00")              # «نوع استخدام» label

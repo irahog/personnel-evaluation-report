@@ -49,7 +49,7 @@ image_boxes: dict[str, str] = {}   # picture id -> merged cell range
 section_regions: dict[str, dict[str, list[str]]] = {}
 _current = {"section": None}
 _title_rows: dict[str, int] = {}
-KV_SECTIONS = {"personal", "employment", "signature"}
+KV_SECTIONS = {"personal", "employment"}
 FIXED_FILLS = {C_YELLOW, C_GIRL, C_BOY, C_WARN, C_PLEDGE, C_PEACH, C_SCORE}
 
 
@@ -66,7 +66,14 @@ def _record(rng: str, bold: bool, bg: str | None, font: str, field: str | None) 
         key = "personal" if col <= "J" and len(col) == 1 else "employment"
     row = int(re.search(r"\d+", rng).group())
     first_row = _title_rows.setdefault(key, row)
-    if key in KV_SECTIONS:          # label/value tables: labels are the header, like the web view
+    if key in KV_SECTIONS:          # label/value tables: only the title bar is header; labels stay as they are
+        if row == first_row:
+            header = True
+        elif bold or bg == C_SUB:
+            return
+        else:
+            header = False
+    elif key == "signature":         # column headings (final score, evaluator, date)
         header = bold or bg in (C_HEAD, C_SUB, C_TITLE)
     else:                            # grid tables: title bar + column-heading row only
         header = row == first_row or (row == first_row + 1 and bg == C_SUB)

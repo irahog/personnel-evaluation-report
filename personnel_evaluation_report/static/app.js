@@ -26,7 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   // Table appearance: live preview in the form (the server renders the same values for view/print/Excel).
-  const PART_TARGETS = { header: "h3, thead th, table.kv th", body: "tbody td, table.kv td, .note" };
+  // The label column of «اطلاعات فردی/پرسنلی» belongs to neither part (only the title bar is header).
+  const PART_TARGETS = { header: "h3, thead th", body: "tbody td, table.kv td, .note" };
   function applyPart(section, fs) {
     const v = (p) => fs.querySelector(`[data-prop="${p}"]`);
     const scale = parseFloat(v("size").selectedOptions[0].dataset.scale);

@@ -93,7 +93,8 @@ def css(styles: Styles) -> str:
         sel = f'section.rsec[data-sec="{key}"]'   # beats the generic table rules in app.css
         for part, ps in parts.items():
             if part == "header":
-                targets = (f"{sel} h3", f"{sel} thead th", f"{sel} table.kv th")
+                # Label/value tables: the label column is not a header — only the title bar is.
+                targets = (f"{sel} h3", f"{sel} thead th")
             else:
                 targets = (f"{sel} tbody td", f"{sel} table.kv td", f"{sel} .note")
             decl = (f"color:{ps.fg};background:{ps.bg};font-weight:{700 if ps.bold else 400};"
