@@ -55,3 +55,5 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\PersonnelEvaluationReport.exe
 
 [Run]
 Filename: "{app}\PersonnelEvaluationReport.exe"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; In-app update (silent install): reopen the app afterwards.
+Filename: "{app}\PersonnelEvaluationReport.exe"; Flags: nowait skipifnotsilent

@@ -13,7 +13,7 @@ from urllib.parse import quote
 from flask import (Flask, Response, abort, flash, g, redirect, render_template, request,
                    session, url_for)
 
-from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo, styles
+from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo, styles, updater
 from .normalize import normalize_national_id, to_fa_digits
 from .paths import RESOURCES
 from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, PhotoSection, Report, Static,
@@ -37,6 +37,8 @@ class AppState:
     settings: Settings
     sessions: dict[str, SessionState] = field(default_factory=dict)
     lock: threading.Lock = field(default_factory=threading.Lock)
+    update_info: object = None                      # updater.ReleaseInfo from the last check
+    update_job: object = None                       # updater.Job (background download)
 
 
 def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Callable[[], None] | None = None,
@@ -364,6 +366,8 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
                 flash("تنظیمات ذخیره شد.", "success")
             return redirect(url_for("settings_page"))
         return render_template("settings.html", font_status=fonts.status(), fonts=fonts.FONTS,
+                               update_info=state.update_info, update_job=state.update_job,
+                               can_self_update=updater.can_self_update(), releases_page=updater.RELEASES_PAGE,
                                shared_exists=bool(st.shared_workbook) and os.path.exists(st.shared_workbook))
 
     @app.post("/settings/shared")
@@ -412,6 +416,61 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         else:
             flash("فونت‌های همراه برنامه از قبل نصب بودند.", "success")
         return redirect(url_for("settings_page"))
+
+    # ── in-app update (user-initiated only) ─────────────────────────────
+    @app.post("/settings/update/check")
+    def update_check():
+        try:
+            info = updater.check()
+        except updater.UpdateError as e:
+            flash(str(e), "error")
+            return redirect(url_for("settings_page") + "#update")
+        state.update_info = info
+        log.info("update check: latest=%s newer=%s", info.version, info.newer)
+        if info.newer:
+            flash(f"نسخهٔ تازهٔ {to_fa_digits(info.version)} منتشر شده است.", "success")
+        else:
+            flash(f"برنامه به‌روز است (نسخهٔ {to_fa_digits(VERSION)}).", "success")
+        return redirect(url_for("settings_page") + "#update")
+
+    @app.post("/settings/update/download")
+    def update_download():
+        info = state.update_info
+        if not (info and info.newer and updater.can_self_update()):
+            return redirect(url_for("settings_page") + "#update")
+        job = state.update_job
+        if job is None or job.state in ("idle", "error"):
+            job = state.update_job = updater.Job(state="downloading", version=info.version,
+                                                 message="در حال دانلود نسخهٔ تازه…")
+            threading.Thread(target=updater.download, args=(info, job), daemon=True).start()
+        return redirect(url_for("settings_page") + "#update")
+
+    @app.get("/settings/update/status")
+    def update_status():
+        job = state.update_job
+        return job.as_dict() if job else {"state": "idle", "percent": 0, "message": "", "version": ""}
+
+    @app.post("/settings/update/install")
+    def update_install():
+        job = state.update_job
+        if not (job and job.state == "ready" and job.file):
+            return redirect(url_for("settings_page") + "#update")
+        try:
+            cmd = updater.prepare_install(job.file)
+            updater.launch(cmd)
+        except updater.UpdateError as e:
+            flash(str(e), "error")
+            return redirect(url_for("settings_page") + "#update")
+        except OSError:
+            flash("اجرای نصب‌کننده ممکن نشد. نسخهٔ تازه را از صفحهٔ دانلود دستی نصب کنید.", "error")
+            return redirect(url_for("settings_page") + "#update")
+        job.state = "installing"
+        with state.lock:
+            state.sessions.clear()
+        log.info("update install started version=%s", job.version)
+        if shutdown:
+            threading.Timer(1.0, shutdown).start()
+        return render_template("bye.html", updating=job.version)
 
     # ── quit ─────────────────────────────────────────────────────────────
     @app.post("/quit")

@@ -105,6 +105,9 @@ details.empty { margin: .5rem 0; color: var(--muted); }
 .code-box { direction: ltr; text-align: left; background: #f7f7fb; border: 1px solid var(--border); border-radius: 8px;
   padding: .45rem .75rem; font-size: .88rem; overflow-wrap: anywhere; }
 
+.update-progress { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin: .5rem 0; }
+.update-progress progress { width: 16rem; height: .9rem; accent-color: var(--accent); }
+
 /* search */
 .search-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .search-row label { font-weight: 700; }

@@ -101,6 +101,25 @@ jobs:
           $p = Start-Process -FilePath "$dir\PersonnelEvaluationReport.exe" -ArgumentList "--selftest `"$persian\خروجی`"" -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "self-test in a Persian path failed" }
 
+      - name: In-app update path (silent reinstall restarts the app)
+        run: |
+          # The app's updater runs the installer with these flags after it quits; the installer
+          # must replace the files and reopen the app on its own.
+          $setup = (Get-ChildItem dist\PersonnelEvaluationReport-Setup-*.exe).FullName
+          Remove-Item "$env:LOCALAPPDATA\PersonnelEvaluationReport\instance.json" -ErrorAction SilentlyContinue
+          $p = Start-Process -FilePath $setup -ArgumentList "/SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /CURRENTUSER" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "silent update install failed ($($p.ExitCode))" }
+          $port = $null
+          for ($i = 0; $i -lt 60 -and -not $port; $i++) {
+            Start-Sleep -Milliseconds 500
+            $f = "$env:LOCALAPPDATA\PersonnelEvaluationReport\instance.json"
+            if (Test-Path $f) { $port = (Get-Content $f | ConvertFrom-Json).port }
+          }
+          if (-not $port) { throw "app was not restarted after the silent update" }
+          $h = Invoke-RestMethod "http://127.0.0.1:$port/health"
+          if ($h.app -ne "personnel-evaluation-report") { throw "unexpected health response" }
+          Get-Process PersonnelEvaluationReport -ErrorAction SilentlyContinue | Stop-Process -Force
+
       - name: Collect artifacts
         if: always()
         run: |

@@ -56,6 +56,17 @@ document.addEventListener("DOMContentLoaded", () => {
       panel.closest("form").dispatchEvent(new Event("input"));
     });
   });
+  // Update download: poll progress while downloading, then reload to show the install button.
+  const up = document.querySelector("[data-update-status]");
+  if (up && up.dataset.state === "downloading") {
+    const bar = up.querySelector("progress"), msg = up.querySelector(".update-msg");
+    const tick = () => fetch(up.dataset.updateStatus, { cache: "no-store" }).then((r) => r.json()).then((j) => {
+      bar.value = j.percent;
+      if (j.message) msg.textContent = j.message;
+      if (j.state === "downloading") setTimeout(tick, 1000); else window.location.reload();
+    }).catch(() => setTimeout(tick, 2000));
+    setTimeout(tick, 800);
+  }
   // Print.
   document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
   // Warn before leaving the form with unsaved edits (nothing is saved automatically).

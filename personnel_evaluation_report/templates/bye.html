@@ -1,5 +1,8 @@
 <!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>{{ title }}</title>
 <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='logo.svg') }}"><link rel="stylesheet" href="{{ url_for('static', filename='fonts.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}"></head>
-<body class="{{ settings.font|font_class }}"><main><section class="card"><h2>برنامه بسته شد</h2>
-<p>اطلاعات بارگذاری‌شده از حافظهٔ برنامه پاک شد. اکنون می‌توانید این زبانه را ببندید.</p>
+<body class="{{ settings.font|font_class }}"><main><section class="card">
+{% if updating %}<h2>در حال نصب نسخهٔ {{ fa(updating) }}</h2>
+<p>برنامه بسته شد و نسخهٔ تازه در حال نصب است. پس از پایان نصب، برنامه خودکار دوباره باز می‌شود. این زبانه را ببندید.</p>
+{% else %}<h2>برنامه بسته شد</h2>
+<p>اطلاعات بارگذاری‌شده از حافظهٔ برنامه پاک شد. اکنون می‌توانید این زبانه را ببندید.</p>{% endif %}
 <p class="hint">فایل‌هایی که دانلود یا ذخیره کرده‌اید (اکسل، مارک‌داون، کارنامهٔ مشترک) سر جای خود باقی می‌مانند.</p></section></main></body></html>

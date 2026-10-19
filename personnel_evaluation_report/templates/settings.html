@@ -60,4 +60,35 @@
     </div>
   </div>
 </section>
+<section class="card" id="update">
+  <h2>به‌روزرسانی برنامه</h2>
+  <p>نسخهٔ نصب‌شده: <strong>{{ fa(version) }}</strong>
+    {% if update_info %}— آخرین نسخهٔ منتشرشده: <strong>{{ fa(update_info.version) }}</strong>
+      {% if update_info.newer %}<span class="badge ok">نسخهٔ تازه موجود است</span>{% else %}<span class="badge muted">به‌روز است</span>{% endif %}{% endif %}</p>
+  {% set job = update_job %}
+  {% if job and job.state in ('downloading', 'ready', 'error') %}
+  <div class="update-progress" data-update-status="{{ url_for('update_status') }}" data-state="{{ job.state }}">
+    <progress max="100" value="{{ job.as_dict().percent }}"></progress>
+    <span class="update-msg">{{ job.message }}</span>
+  </div>
+  {% endif %}
+  <div class="card-foot">
+    <p class="hint">بررسی فقط با زدن دکمه انجام می‌شود و جز درخواست فهرست نسخه‌ها از گیت‌هاب، هیچ اطلاعاتی فرستاده نمی‌شود.
+      نصب نسخهٔ تازه برنامه را می‌بندد؛ اطلاعات بارگذاری‌شده و گزارش جاری پاک می‌شود و تنظیمات حفظ می‌شود.</p>
+    <div class="btn-group">
+      <form method="post" action="{{ url_for('update_check') }}" class="inline" data-busy="در حال بررسی…"><input type="hidden" name="_csrf" value="{{ csrf }}"><button>بررسی نسخهٔ جدید</button></form>
+      {% if update_info and update_info.newer %}
+        {% if not can_self_update %}
+          <a class="button primary" href="{{ releases_page }}" target="_blank" rel="noopener">صفحهٔ دانلود</a>
+        {% elif job and job.state == 'ready' %}
+          <form method="post" action="{{ url_for('update_install') }}" class="inline" data-confirm="برنامه بسته می‌شود، نسخهٔ {{ fa(job.version) }} نصب می‌شود و دوباره باز می‌شود. اطلاعات بارگذاری‌شده و گزارش جاری پاک می‌شود. ادامه می‌دهید؟">
+            <input type="hidden" name="_csrf" value="{{ csrf }}"><button class="primary">نصب و راه‌اندازی دوباره</button></form>
+        {% elif not job or job.state in ('idle', 'error') %}
+          <form method="post" action="{{ url_for('update_download') }}" class="inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="primary">دانلود نسخهٔ {{ fa(update_info.version) }}</button></form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% if not can_self_update %}<p class="hint">نصب خودکار فقط در نسخهٔ نصب‌شدهٔ ویندوز و مک کار می‌کند؛ در غیر این صورت نسخهٔ تازه را از صفحهٔ دانلود بگیرید.</p>{% endif %}
+</section>
 {% endblock %}
