@@ -119,14 +119,35 @@ class ReleaseInfo:
     sums_url: str | None
 
 
+def _check_via_release_page() -> ReleaseInfo:
+    """Fallback without the GitHub API (whose anonymous limit is 60 requests/hour per IP — easily hit
+    behind a shared office address): follow …/releases/latest to …/releases/tag/vX.Y.Z and build the
+    asset URLs from the fixed release file names."""
+    with _open(RELEASES_PAGE) as r:
+        final = r.geturl()
+    m = re.search(r"/releases/tag/v?([0-9][0-9.]*)$", urllib.parse.urlparse(final).path)
+    if not m:
+        raise UpdateError("اطلاعات نسخهٔ تازه قابل خواندن نبود.")
+    version = m.group(1)
+    base = f"https://github.com/{RELEASES_REPO}/releases/download/v{version}/"
+    name = asset_name(version)
+    return ReleaseInfo(version=version, newer=is_newer(version), page_url=final, asset=name,
+                       asset_url=base + name if name else None, sums_url=base + "SHA256SUMS.txt")
+
+
 def check() -> ReleaseInfo:
     try:
         with _open(API_LATEST) as r:
             data = json.loads(r.read().decode("utf-8"))
     except UpdateError:
         raise
-    except Exception:  # noqa: BLE001 – offline, DNS, proxy, HTTP errors…
-        raise UpdateError("ارتباط با گیت‌هاب برقرار نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.")
+    except Exception:  # noqa: BLE001 – rate limit, offline, DNS, proxy…: try the plain release page
+        try:
+            return _check_via_release_page()
+        except UpdateError:
+            raise
+        except Exception:  # noqa: BLE001
+            raise UpdateError("ارتباط با گیت‌هاب برقرار نشد. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.")
     try:
         version = str(data["tag_name"]).lstrip("v")
         parse_version(version)

@@ -143,3 +143,22 @@ def test_tls_context_trusts_github():
     ctx = updater._context()
     assert ctx.verify_mode == ssl.CERT_REQUIRED and ctx.check_hostname
     assert ctx.cert_store_stats()["x509_ca"] > 50
+
+
+def test_falls_back_to_release_page_when_api_refuses(monkeypatch):
+    """GitHub's anonymous API limit (HTTP 403) must not break the update check."""
+    import urllib.error
+    monkeypatch.setattr(updater, "asset_name", lambda v: f"PersonnelEvaluationReport-Setup-{v}.exe")
+
+    def opener(url):
+        updater._check_url(url)
+        if url == updater.API_LATEST:
+            raise urllib.error.HTTPError(url, 403, "rate limit exceeded", {}, None)
+        if url == updater.RELEASES_PAGE:
+            return FakeResp(b"<html/>", "https://github.com/irahog/personnel-evaluation-report-releases/releases/tag/v9.9.9")
+        raise OSError(url)
+    monkeypatch.setattr(updater, "_open", opener)
+    info = updater.check()
+    assert info.version == "9.9.9" and info.newer
+    assert info.asset_url.endswith("/releases/download/v9.9.9/PersonnelEvaluationReport-Setup-9.9.9.exe")
+    assert info.sums_url.endswith("/releases/download/v9.9.9/SHA256SUMS.txt")
