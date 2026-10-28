@@ -2,4 +2,4 @@
 
 APP_NAME = "PersonnelEvaluationReport"
 APP_TITLE_FA = "کارنامه پرسنلی"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
