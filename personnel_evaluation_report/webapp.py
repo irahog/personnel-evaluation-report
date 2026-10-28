@@ -15,11 +15,12 @@ from flask import (Flask, Response, abort, flash, g, redirect, render_template, 
 
 from . import APP_TITLE_FA, VERSION, export_excel, export_md, filedialog, fonts, jalali, photo, styles, updater
 from .normalize import normalize_national_id, to_fa_digits
-from .paths import RESOURCES
+from .paths import POSTS_MAPPING, RESOURCES
 from .report import (FIELDS, MARITAL_LABELS, SECTIONS, Banner, FieldsSection, PhotoSection, Report, Static,
+                     prefill_from_posts,
                      TableSection, apply_form, new_report)
 from .settings import Settings
-from .source import LoadedWorkbook, NeedsSheetChoice, SourceError, load_source
+from .source import LoadedWorkbook, NeedsSheetChoice, SourceError, load_mapping, load_source
 
 log = logging.getLogger("personnel_evaluation_report")
 
@@ -30,6 +31,8 @@ class SessionState:
     sheet_choice: tuple[str, list[str]] | None = None   # (path, candidate sheet names)
     report: Report | None = None
     pending_replace: str = ""                             # sheet name awaiting confirmation
+    posts: LoadedWorkbook | None = None                   # optional «فهرست کارکنان با پست قبلی»
+    posts_sheet_choice: tuple[str, list[str]] | None = None
 
 
 @dataclass
@@ -71,6 +74,32 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             return ("فایل اطلاعات پرسنلی پس از بارگذاری تغییر کرده یا جابه‌جا شده است. "
                     "برای ادامه، دکمهٔ «بارگذاری دوباره» را بزنید.")
         return ""
+
+    def posts_stale_message(s: SessionState) -> str:
+        if s.posts and s.posts.is_stale():
+            return ("فایل پست‌های قبلی پس از بارگذاری تغییر کرده یا جابه‌جا شده است. "
+                    "دکمهٔ «بارگذاری دوباره» همان بخش را بزنید.")
+        return ""
+
+    def load_posts(s: SessionState, path: str, sheet: str | None = None) -> None:
+        s.posts_sheet_choice = None
+        try:
+            wb = load_source(path, sheet, mapping=load_mapping(POSTS_MAPPING))
+        except NeedsSheetChoice as e:
+            s.posts_sheet_choice = (path, e.candidates)
+            flash("فایل پست‌های قبلی: " + str(e), "warning")
+            return
+        except SourceError as e:
+            flash("فایل پست‌های قبلی: " + str(e), "error")
+            log.info("posts workbook load failed: %s", type(e).__name__)
+            return
+        s.posts = wb
+        log.info("posts workbook loaded: rows=%d duplicates=%d", len(wb.employees), wb.duplicate_count)
+        flash(f"فایل پست‌های قبلی «{wb.file_name}» با {to_fa_digits(str(len(wb.employees)))} ردیف بارگذاری شد.", "success")
+        if s.report:
+            prefill_from_posts(s.report, wb)
+            s.report.validated = False
+            flash("«سمت های قبلی» و «توقف پست» گزارش جاری از این فایل تکمیل شد (اگر خالی بودند).", "success")
 
     def require_report(s: SessionState, validated: bool = False) -> Report:
         if not s.workbook or not s.report:
@@ -118,6 +147,8 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
                 fresh.manual = old_report.manual
                 fresh.photo = old_report.photo
                 fresh.styles = old_report.styles
+                fresh.prefilled = old_report.prefilled
+                fresh.posts_notes = old_report.posts_notes
                 if not fresh.marital_from_source and not old_report.marital_from_source:
                     fresh.marital = old_report.marital
                 s.report = fresh
@@ -154,7 +185,7 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         return {
             "csrf": session.get("csrf", ""), "s": s, "settings": state.settings, "fa": to_fa_digits,
             "title": APP_TITLE_FA, "version": VERSION, "stale": stale_message(s),
-            "font_css": quote(state.settings.font),
+            "font_css": quote(state.settings.font), "posts_stale": posts_stale_message(s),
             "SECTIONS": SECTIONS, "FIELDS": FIELDS, "Static": Static, "Banner": Banner,
             "FieldsSection": FieldsSection, "TableSection": TableSection, "PhotoSection": PhotoSection,
             "MARITAL_LABELS": MARITAL_LABELS,
@@ -219,6 +250,38 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             load_into(s, s.sheet_choice[0], name)
         return redirect(url_for("index"))
 
+    # ── optional previous-posts workbook ────────────────────────────────
+    @app.post("/posts/pick")
+    def pick_posts():
+        path = ask("open_posts", state.settings.last_dir)
+        if path:
+            if g.s.workbook and _same_file(path, g.s.workbook.path):
+                flash("این همان فایل اطلاعات پرسنلی است؛ فایل «فهرست کارکنان با پست قبلی» را انتخاب کنید.", "error")
+            else:
+                load_posts(g.s, path)
+        return redirect(url_for("index"))
+
+    @app.post("/posts/reload")
+    def reload_posts():
+        if g.s.posts:
+            load_posts(g.s, g.s.posts.path, g.s.posts.sheet_name)
+        return redirect(url_for("index"))
+
+    @app.post("/posts/sheet")
+    def choose_posts_sheet():
+        s = g.s
+        name = request.form.get("sheet", "")
+        if s.posts_sheet_choice and name in s.posts_sheet_choice[1]:
+            load_posts(s, s.posts_sheet_choice[0], name)
+        return redirect(url_for("index"))
+
+    @app.post("/posts/clear")
+    def clear_posts():
+        g.s.posts = None
+        g.s.posts_sheet_choice = None
+        flash("فایل پست‌های قبلی کنار گذاشته شد؛ «سمت های قبلی» و «توقف پست» دستی پر می‌شوند.", "success")
+        return redirect(url_for("index"))
+
     # ── search ───────────────────────────────────────────────────────────
     @app.post("/search")
     def search():
@@ -227,6 +290,9 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
             flash("ابتدا فایل اطلاعات پرسنلی را انتخاب کنید.", "error")
             return redirect(url_for("index"))
         block_if_stale(s)
+        if posts_stale_message(s):
+            flash(posts_stale_message(s), "error")
+            return redirect(url_for("index"))
         raw = request.form.get("national_id", "")
         key = normalize_national_id(raw)
         if not key:
@@ -245,6 +311,8 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
                   "گزارش ساخته نشد؛ لطفاً فایل منبع را اصلاح و دوباره بارگذاری کنید.", "error")
             return redirect(url_for("index"))
         s.report = new_report(s.workbook, matches[0])   # replaces any previous report entirely
+        if s.posts:
+            prefill_from_posts(s.report, s.posts)
         s.pending_replace = ""
         log.info("report started")
         return redirect(url_for("edit_report"))
@@ -483,6 +551,13 @@ def create_app(settings: Settings | None = None, *, port: int = 0, shutdown: Cal
         return render_template("bye.html")
 
     return app
+
+
+def _same_file(a: str, b: str) -> bool:
+    try:
+        return os.path.samefile(a, b)
+    except OSError:
+        return False
 
 
 def _download(body: bytes, filename: str, mimetype: str) -> Response:

@@ -1,0 +1,11 @@
+{
+  "_comment": "Optional second workbook «فهرست کارکنان با پست قبلی». Matched to the personnel workbook by national ID. 'headers' are exact accepted spellings (same explicit normalization as source_mapping.json; line breaks inside a header count as spaces).",
+  "header_scan_rows": 15,
+  "fields": [
+    {"id": "national_id",      "headers": ["شماره ملی", "کد ملی", "کدملی"],                    "type": "national_id", "required": true},
+    {"id": "first_name",       "headers": ["نام"],                                          "type": "text",        "required": false},
+    {"id": "last_name",        "headers": ["نام خانوادگی"],                                 "type": "text",        "required": false},
+    {"id": "last_appointment", "headers": ["تاریخ آخرین انتصاب"],                           "type": "date",        "required": true},
+    {"id": "previous_posts",   "headers": ["عنوان پست سازمانی قبلی در ابلاغ"],              "type": "multiline",   "required": true}
+  ]
+}

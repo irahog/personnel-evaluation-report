@@ -205,6 +205,9 @@ def _cell_text(value, ftype: str, issues: list[str], label: str) -> str:
         elif ftype == "phone" and isinstance(value, int):
             issues.append("تلفن همراه در اکسل به صورت عدد ذخیره شده و ممکن است صفر ابتدایی آن حذف شده باشد.")
         return text
+    if ftype == "multiline":           # keep the author's line breaks (one previous post per line)
+        lines = [clean_text(line) for line in str(value).replace("\r", "").split("\n")]
+        return "\n".join(line for line in lines if line)
     text = clean_text(value)
     if ftype == "date" and text and text != "-" and jalali.parse(text) is None:
         issues.append(f"مقدار «{label}» تاریخ شمسی معتبر (سال/ماه/روز) نیست.")

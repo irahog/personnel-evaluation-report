@@ -13,7 +13,7 @@ import subprocess
 import sys
 import tempfile
 
-MODES = ("open_source", "open_shared", "new_shared")
+MODES = ("open_source", "open_posts", "open_shared", "new_shared")
 
 
 def _command() -> list[str]:
@@ -56,6 +56,8 @@ def run_dialog(mode: str, initial_dir: str, out_file: str) -> None:
     opts = {"parent": root, "initialdir": initial_dir or os.path.expanduser("~")}
     if mode == "open_source":
         path = filedialog.askopenfilename(title="انتخاب فایل اطلاعات پرسنلی", filetypes=xlsx, **opts)
+    elif mode == "open_posts":
+        path = filedialog.askopenfilename(title="انتخاب فایل فهرست کارکنان با پست قبلی", filetypes=xlsx, **opts)
     elif mode == "open_shared":
         path = filedialog.askopenfilename(title="انتخاب کارنامهٔ مشترک", filetypes=[("فایل اکسل", "*.xlsx")], **opts)
     else:

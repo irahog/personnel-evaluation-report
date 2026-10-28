@@ -32,5 +32,6 @@ RESOURCES = resource_dir()
 TEMPLATE_XLSX = RESOURCES / "resources" / "report_template.xlsx"
 TEMPLATE_MAP = RESOURCES / "resources" / "report_template_map.json"
 SOURCE_MAPPING = RESOURCES / "config" / "source_mapping.json"
+POSTS_MAPPING = RESOURCES / "config" / "previous_posts_mapping.json"
 FONTS_DIR = RESOURCES / "static" / "fonts"
 SAMPLE_WORKBOOK = RESOURCES / "resources" / "sample_personnel.xlsx"

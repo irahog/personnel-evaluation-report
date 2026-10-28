@@ -233,6 +233,8 @@ class Report:
     validated: bool = False
     photo: Photo | None = None                              # employee photo (memory only)
     styles: dict = field(default_factory=dict)              # table appearance (see styles.py)
+    prefilled: dict = field(default_factory=dict)           # manual field id → value taken from the posts file
+    posts_notes: list = field(default_factory=list)         # Persian notes about the posts file lookup
 
     # values used by every output
     def text(self, fid: str) -> str:
@@ -268,7 +270,7 @@ class Report:
         return self.auto.get("full_name", "")
 
     def warnings(self) -> list[str]:
-        out = list(self.source_issues)
+        out = list(self.source_issues) + list(self.posts_notes)
         empty_auto = [FIELDS[f].label for f, v in self.auto.items() if not v]
         if empty_auto:
             out.append("این موارد در فایل منبع خالی است: " + "، ".join(empty_auto))
@@ -372,3 +374,33 @@ def apply_form(report: Report, form: dict[str, str] | object) -> bool:
 
 def all_cells(section: TableSection) -> list[str]:
     return [c for row in section.rows for c in row if isinstance(c, str)]
+
+
+# ── optional second workbook: «فهرست کارکنان با پست قبلی» ──────────────────
+# Report field ← posts-file field. Values are prefilled into the (editable) manual fields.
+POSTS_FIELDS = (("previous_posts", "previous_posts"), ("post_suspension", "last_appointment"))
+
+
+def prefill_from_posts(report: Report, posts: LoadedWorkbook) -> None:
+    """Fill «سمت های قبلی» and «توقف پست» from the posts workbook, matched by national ID.
+
+    Only empty fields are filled (never overwrites what the user typed). Missing or duplicate
+    national IDs are reported, not guessed.
+    """
+    report.posts_notes = []
+    matches = posts.find(report.auto.get("national_id", ""))
+    if not matches:
+        report.posts_notes.append("این کارمند در فایل پست‌های قبلی پیدا نشد؛ «سمت های قبلی» و «توقف پست» را دستی پر کنید.")
+        return
+    if len(matches) > 1:
+        rows = "، ".join(to_fa_digits(str(e.excel_row)) for e in matches)
+        report.posts_notes.append(f"شمارهٔ ملی این کارمند در فایل پست‌های قبلی تکراری است (ردیف‌های {rows})؛ "
+                                  "«سمت های قبلی» و «توقف پست» پر نشد.")
+        return
+    emp = matches[0]
+    report.posts_notes.extend(emp.issues)
+    for fid, src in POSTS_FIELDS:
+        value = emp.values.get(src, "")
+        if value and not report.manual.get(fid):
+            report.manual[fid] = value
+            report.prefilled[fid] = value

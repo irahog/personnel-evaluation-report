@@ -118,7 +118,8 @@ def selftest(outdir: str) -> int:
     (out / "selftest.txt").unlink(missing_ok=True)
     settings = Settings.load(out / "settings.json")
     settings.shared_workbook = str(shared)
-    answers = iter([str(SAMPLE_WORKBOOK)])
+    from .paths import RESOURCES
+    answers = iter([str(SAMPLE_WORKBOOK), str(RESOURCES / "resources" / "sample_previous_posts.xlsx")])
     app = create_app(settings, dialog=lambda mode, d: next(answers))
     c = app.test_client()
     c.get("/")
@@ -135,8 +136,12 @@ def selftest(outdir: str) -> int:
 
     r = c.post("/source/pick", data={"_csrf": token}, follow_redirects=True)
     check("load sample workbook", "بارگذاری شد" in r.get_data(as_text=True))
+    r = c.post("/posts/pick", data={"_csrf": token}, follow_redirects=True)
+    check("load previous-posts workbook", "فایل پست‌های قبلی" in r.get_data(as_text=True))
     r = c.post("/search", data={"_csrf": token, "national_id": "۰۱۵۰۰۹۹۰۰۱"})
     check("search", r.status_code == 302 and r.headers["Location"].endswith("/report/edit"))
+    page = c.get("/report/edit").get_data(as_text=True)
+    check("previous posts prefilled", "از فایل پست‌ها" in page and "کارشناس امور حقوقی (۱۴۰۰/۱۱/۰۴)" in page)
     r = c.post("/report/edit", data={"_csrf": token, "comp_1_score": "۱۸", "comp_total": "۱۸",
                                       "recommend_2_mark": "1", "final_score": "۸۵٫۵"})
     check("validate form", r.status_code == 302)

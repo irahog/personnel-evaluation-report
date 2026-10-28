@@ -173,6 +173,7 @@ output.missing { color: var(--bad); font-style: italic; }
 .tag { font-size: .7rem; font-weight: 400; border-radius: 99px; padding: 0 .4rem; margin-inline-start: .3rem; white-space: nowrap; }
 .tag.auto { background: #d7e4ff; color: #23408e; }
 .tag.manual { background: #fff1c2; color: #7a5500; }
+.tag.prefill { background: #dff3e6; color: #1e6b3a; }
 .actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin-top: .75rem; }
 .actions .spacer { flex: 1; }
 .actions.sticky { position: sticky; bottom: 0; z-index: 5; background: rgba(243, 244, 248, .96); padding: .7rem 0;

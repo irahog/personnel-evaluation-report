@@ -91,6 +91,17 @@ samples/                       synthetic sample outputs
 docs/                          discovery notes, Persian user guide
 ```
 
+## Optional second workbook: previous posts
+
+The optional second input, «فهرست کارکنان با پست قبلی», is configured in
+`personnel_evaluation_report/config/previous_posts_mapping.json`. Its required columns are `شماره ملی`,
+`تاریخ آخرین انتصاب` and `عنوان پست سازمانی قبلی در ابلاغ` (a line break inside the header counts as a space).
+Rows are matched to the personnel workbook by national ID. «سمت های قبلی» gets the previous-posts text, with its
+line breaks kept; «توقف پست» gets the last-appointment date as written. Both stay editable and never overwrite
+what the user typed. Missing or duplicate IDs are reported, not guessed. The file has its own staleness check,
+and a stale file blocks new searches until it is reloaded. A synthetic sample is in
+`Template/fake previous posts workbook.xlsx` (`tools/make_sample_posts.py`).
+
 ## Source-to-report mapping
 
 **Source columns** are configured in `personnel_evaluation_report/config/source_mapping.json`. For each field it lists the

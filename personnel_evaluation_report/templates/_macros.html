@@ -103,7 +103,7 @@
     <table class="kv">
       {%- for fid in sec.fields %}
       <tr class="{{ 'auto-row' if FIELDS[fid].kind == 'auto' }}"><th scope="row">{% if mode == 'edit' and FIELDS[fid].input not in ('marital',) and FIELDS[fid].kind == 'manual' %}<label for="{{ fid }}">{{ FIELDS[fid].label }}</label>{% else %}{{ FIELDS[fid].label }}{% endif %}
-        {%- if mode == 'edit' %} <span class="tag {{ FIELDS[fid].kind }}">{{ 'از فایل منبع' if FIELDS[fid].kind == 'auto' else 'ورود دستی' }}</span>{% endif %}</th>
+        {%- if mode == 'edit' %}{% if fid in r.prefilled %} <span class="tag prefill" title="مقدار از فایل پست‌های قبلی آمده و قابل ویرایش است">از فایل پست‌ها</span>{% else %} <span class="tag {{ FIELDS[fid].kind }}">{{ 'از فایل منبع' if FIELDS[fid].kind == 'auto' else 'ورود دستی' }}</span>{% endif %}{% endif %}</th>
         <td>{{ cell(r, fid) }}</td></tr>
       {%- endfor %}
     </table>

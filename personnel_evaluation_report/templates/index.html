@@ -39,7 +39,44 @@
 </section>
 
 <section class="card">
-  <h2><span class="step">۲</span>جست‌وجوی کارمند</h2>
+  <h2><span class="step">۲</span>فایل پست‌های قبلی <span class="badge muted">اختیاری</span></h2>
+  {% if posts_stale %}<div class="msg error" role="alert">{{ posts_stale }}</div>{% endif %}
+  {% if s.posts %}
+    {% set pw = s.posts %}
+    <div class="tiles">
+      <div class="tile"><span class="k">فایل</span><span class="v"><bdi>{{ pw.file_name }}</bdi></span></div>
+      <div class="tile"><span class="k">برگه</span><span class="v">{{ pw.sheet_name }} <small>(سطر عنوان {{ fa(pw.header_row|string) }})</small></span></div>
+      <div class="tile"><span class="k">تعداد ردیف‌ها</span><span class="v">{{ fa(pw.employees|length|string) }}</span></div>
+      <div class="tile"><span class="k">وضعیت</span><span class="v">{% if posts_stale %}<span class="badge bad">تغییر کرده</span>{% else %}<span class="badge ok">بارگذاری‌شده</span>{% endif %}</span></div>
+    </div>
+    <p class="path"><bdi dir="ltr">{{ pw.path }}</bdi></p>
+    {% if pw.warnings %}<ul class="warnings">{% for w in pw.warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+  {% else %}
+    <p class="empty-state">با این فایل («فهرست کارکنان با پست قبلی»)، «سمت های قبلی» از ستون «عنوان پست سازمانی قبلی در ابلاغ»
+      و «توقف پست» از ستون «تاریخ آخرین انتصاب» خودکار پر می‌شود؛ هر دو در فرم قابل ویرایش‌اند. کارمندان با «شماره ملی» تطبیق داده می‌شوند.</p>
+  {% endif %}
+  {% if s.posts_sheet_choice %}
+    <form method="post" action="{{ url_for('choose_posts_sheet') }}" class="row">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label for="psheet">برگهٔ فهرست پست‌ها:</label>
+      <select id="psheet" name="sheet">{% for n in s.posts_sheet_choice[1] %}<option>{{ n }}</option>{% endfor %}</select>
+      <button class="primary">بارگذاری این برگه</button>
+    </form>
+  {% endif %}
+  <div class="row">
+    <form method="post" action="{{ url_for('pick_posts') }}" data-busy="پنجرهٔ انتخاب فایل باز شد…">
+      <input type="hidden" name="_csrf" value="{{ csrf }}">
+      <button>{{ 'انتخاب فایل دیگر' if s.posts else 'انتخاب فایل پست‌های قبلی' }}</button>
+    </form>
+    {% if s.posts %}
+    <form method="post" action="{{ url_for('reload_posts') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="{{ 'primary' if posts_stale }}">بارگذاری دوباره</button></form>
+    <form method="post" action="{{ url_for('clear_posts') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="link">کنار گذاشتن این فایل</button></form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h2><span class="step">۳</span>جست‌وجوی کارمند</h2>
   {% if s.report %}
     <p class="msg info">گزارش <strong>{{ s.report.employee_name }}</strong> در حال تکمیل است.
       <a href="{{ url_for('edit_report') }}">ادامهٔ گزارش</a>. با جست‌وجوی کارمند دیگر، اطلاعات این گزارش پاک می‌شود.</p>
@@ -49,7 +86,7 @@
     <label for="nid">شماره ملی:</label>
     <input id="nid" name="national_id" class="nid" inputmode="numeric" maxlength="20" placeholder="مثلاً ۰۱۲۳۴۵۶۷۸۹"
            {% if not s.workbook or stale %}disabled{% endif %} autofocus>
-    <button class="primary" {% if not s.workbook or stale %}disabled{% endif %}>جست‌وجو</button>
+    <button class="primary" {% if not s.workbook or stale or posts_stale %}disabled{% endif %}>جست‌وجو</button>
   </form>
   <p class="hint">ارقام فارسی، عربی یا انگلیسی پذیرفته می‌شود. جست‌وجو فقط با تطابق کامل شماره ملی انجام می‌شود.</p>
 </section>
