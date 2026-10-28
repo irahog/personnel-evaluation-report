@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import ssl
 import time
 
 import pytest
@@ -135,3 +136,10 @@ def test_update_routes(settings, monkeypatch, tmp_path):
 def test_settings_page_shows_update_card(client):
     page = client.get("/settings").get_data(as_text=True)
     assert 'id="update"' in page and "بررسی نسخهٔ جدید" in page
+
+
+def test_tls_context_trusts_github():
+    """Certificate verification stays on, with the bundled CA list available."""
+    ctx = updater._context()
+    assert ctx.verify_mode == ssl.CERT_REQUIRED and ctx.check_hostname
+    assert ctx.cert_store_stats()["x509_ca"] > 50

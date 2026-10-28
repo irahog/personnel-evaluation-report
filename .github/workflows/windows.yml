@@ -43,6 +43,14 @@ jobs:
           Get-Content "$out\selftest.txt"
           if ($p.ExitCode -ne 0) { throw "packaged self-test failed ($($p.ExitCode))" }
 
+      - name: Packaged app can reach the releases page over verified TLS
+        run: |
+          $out = "$env:RUNNER_TEMP\update-check.txt"
+          $p = Start-Process -FilePath "dist\PersonnelEvaluationReport\PersonnelEvaluationReport.exe" -ArgumentList "--check-update `"$out`"" -PassThru
+          $p.WaitForExit()
+          Get-Content $out
+          if ($p.ExitCode -ne 0) { throw "update check from the packaged app failed" }
+
       - name: Packaged server starts, binds 127.0.0.1 only, handles a busy port
         run: |
           # Occupy the first preferred port to exercise the port-conflict path.

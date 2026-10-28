@@ -174,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dialog", nargs=3, metavar=("MODE", "DIR", "OUT"))
     p.add_argument("--selftest", metavar="OUTDIR")
     p.add_argument("--install-fonts", action="store_true", help="install bundled fonts for the current user")
+    p.add_argument("--check-update", metavar="OUTFILE", help="(diagnostic) check the latest release; write the result to OUTFILE")
     p.add_argument("--no-browser", action="store_true")
     p.add_argument("--port", type=int)
     args = p.parse_args(argv)
@@ -188,6 +189,17 @@ def main(argv: list[str] | None = None) -> int:
         run_dialog(*args.dialog)
         return 0
     setup_logging()
+    if args.check_update:
+        from . import updater
+        try:
+            info = updater.check()
+            result, code = f"OK latest={info.version} asset={info.asset} url={'yes' if info.asset_url else 'no'}", 0
+        except updater.UpdateError as e:
+            result, code = f"FAIL {e}", 1
+        print(result)
+        with open(args.check_update, "w", encoding="utf-8") as fh:
+            fh.write(result + "\n")
+        return code
     if args.install_fonts:
         from .fonts import install_user_fonts
         print("installed:", ", ".join(install_user_fonts()) or "nothing new")

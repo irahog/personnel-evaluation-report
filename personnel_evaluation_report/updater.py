@@ -18,6 +18,7 @@ import os
 import platform
 import re
 import shutil
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -64,11 +65,32 @@ def _check_url(url: str) -> None:
         raise UpdateError("نشانی دانلود معتبر نیست؛ به‌روزرسانی انجام نشد.")
 
 
+_ssl_context: ssl.SSLContext | None = None
+
+
+def _context() -> ssl.SSLContext:
+    """System trust store plus the bundled certifi list.
+
+    Windows Python reads the Windows store (so corporate proxy CAs keep working); python.org-style
+    macOS builds have no system certificates, so certifi supplies GitHub's CA there.
+    """
+    global _ssl_context
+    if _ssl_context is None:
+        ctx = ssl.create_default_context()
+        try:
+            import certifi
+            ctx.load_verify_locations(certifi.where())
+        except (ImportError, OSError):
+            pass
+        _ssl_context = ctx
+    return _ssl_context
+
+
 def _open(url: str):
     _check_url(url)
     req = urllib.request.Request(url, headers={"User-Agent": f"PersonnelEvaluationReport/{VERSION}",
                                                "Accept": "application/vnd.github+json"})
-    resp = urllib.request.urlopen(req, timeout=TIMEOUT)
+    resp = urllib.request.urlopen(req, timeout=TIMEOUT, context=_context())
     _check_url(resp.geturl())                       # also after redirects
     return resp
 

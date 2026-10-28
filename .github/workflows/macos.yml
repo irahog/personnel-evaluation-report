@@ -54,6 +54,12 @@ jobs:
           "$BIN" --selftest "$out"
           cat "$out/selftest.txt"
 
+      - name: Packaged app can reach the releases page over verified TLS
+        run: |
+          "$BIN" --check-update "$RUNNER_TEMP/update-check.txt"
+          cat "$RUNNER_TEMP/update-check.txt"
+          grep -q "^OK " "$RUNNER_TEMP/update-check.txt"
+
       - name: Per-user font installation is detected
         run: |
           "$BIN" --install-fonts
